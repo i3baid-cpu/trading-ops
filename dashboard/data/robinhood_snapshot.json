@@ -1,0 +1,26 @@
+{
+  "_source": "Positions, prices and cash copied from 01_robinhood/dashboard_page_source.tsx (SNAP + CASH constants, snapshot Oct 27 2026 12:44 Kuwait time). DOGE removed because the GTC stop filled on Oct 30 03:21 (orders_full.csv). FLOKI added from the Oct 30 14:44 fill at its fill price. Cash is Oct 27 cash + DOGE proceeds - FLOKI cost, derived arithmetically from orders_full.csv.",
+  "snapshot_time_kwt": "2026-10-27 12:44",
+  "account": "8275",
+  "cash_usd": 7.46,
+  "cash_note": "Derived: 9.71 (Oct 27 snapshot) + 19.75 (DOGE stop fill Oct 30) - 22.00 (FLOKI buy Oct 30)",
+  "positions": [
+    {"symbol": "ETH", "type": "Crypto", "qty": 0.31802846, "basis_qty": 0.01218, "basis_usd": 30.0, "price": 2305.215679855, "prev_close": 2302.39, "price_asof": "2026-10-27", "basis_note": "Only 0.01218 ETH of the 0.318 held has a known cost (Aug 29 buy). The rest predates the order history."},
+    {"symbol": "BTC", "type": "Crypto", "qty": 0.00258226, "basis_qty": 0.00076569, "basis_usd": 60.0, "price": 79553.466963155, "prev_close": 79736.85, "price_asof": "2026-10-27", "basis_note": "Only 0.00076569 BTC of the 0.00258 held has a known cost (Aug 29 buy)."},
+    {"symbol": "NVDA", "type": "Stock", "qty": 0.341296, "basis_qty": 0.341296, "basis_usd": 72.43, "price": 216.1878, "prev_close": 216.0, "price_asof": "2026-10-27", "basis_note": "Full cost known (Aug 25 buy)."},
+    {"symbol": "QQQ", "type": "Stock", "qty": 0.061212, "basis_qty": 0.061212, "basis_usd": 43.46, "price": 712.57, "prev_close": 712.2, "price_asof": "2026-10-27", "basis_note": "Full cost known (Aug 25 buy)."},
+    {"symbol": "AMD", "type": "Stock", "qty": 0.060777, "basis_qty": 0.060777, "basis_usd": 28.98, "price": 532.5, "prev_close": 531.28, "price_asof": "2026-10-27", "basis_note": "Full cost known (Aug 25 buy)."},
+    {"symbol": "FLOKI", "type": "Crypto", "qty": 938967, "basis_qty": 938967, "basis_usd": 22.0, "price": 0.00002343, "prev_close": null, "price_asof": "2026-10-30 (fill price, no later quote in archive)", "basis_note": "Opened Oct 30 14:44 KWT. No protective stop order appears in orders_full.csv."}
+  ],
+  "reported": {
+    "value_oct27": 1119.11,
+    "value_oct29": 1124.25,
+    "realized_since_inception_usd": 43.19,
+    "realized_stocks_usd": 44.87,
+    "realized_crypto_usd": -1.68,
+    "mtd_realized_oct27_usd": -6.65,
+    "note": "Figures reported in 01_robinhood/HISTORY.md and dashboard_page_source.tsx (Oct 27). They predate the DOGE stop fill of Oct 30."
+  },
+  "inception_kwt": "2026-08-25 20:20",
+  "concentration_limit": 0.20
+}

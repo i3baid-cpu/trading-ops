@@ -1,0 +1,14 @@
+{
+  "strategy": "trend_filter",
+  "paper": true,
+  "symbols": ["SPY", "QQQ"],
+  "timeframe": "day",
+  "sleeptime": "1D",
+  "max_open_positions": 2,
+  "stake_pct": 0.5,
+  "params": {
+    "sma": 200,
+    "band_pct": 0.01
+  },
+  "_notes": "paper must stay true until the gate in DEPLOY.md is met. No stoploss_pct or takeprofit_pct: brackets removed on purpose. band_pct is 1% hysteresis around the SMA to avoid whipsaw when price hugs the line."
+}

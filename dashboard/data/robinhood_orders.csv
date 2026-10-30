@@ -1,0 +1,24 @@
+created_kwt,last_update_kwt,account_last4,asset,side,symbol,qty_ordered,qty_filled,limit_price,stop_price,avg_fill_price,total_usd_filled,state,order_type,tif,initiator
+2026-08-25 07:46,2026-08-25 16:30,0796,stock,buy,SPY,0.004059,0.004059,,,766.160800,3.11,filled,market/immediate,gfd,user
+2026-08-25 20:20,2026-08-25 20:20,8275,stock,buy,AMD,0.060777,0.060777,,,476.819900,28.98,filled,market/immediate,gfd,agent
+2026-08-25 20:20,2026-08-25 20:20,8275,stock,buy,NVDA,0.341296,0.341296,,,212.220000,72.43,filled,market/immediate,gfd,agent
+2026-08-25 20:20,2026-08-25 20:20,8275,stock,buy,QQQ,0.061212,0.061212,,,709.986800,43.46,filled,market/immediate,gfd,agent
+2026-08-25 20:20,2026-08-25 20:20,8275,stock,sell,NFLX,1.763240,1.763240,,,82.160500,144.87,filled,market/immediate,gfd,agent
+2026-08-29 04:14,2026-08-29 04:14,8275 (crypto …4243),crypto,buy,BTC,0.00076569,0.00076569,,,78360.0874783,60,filled,market,gtc,agentic
+2026-08-29 04:14,2026-08-29 04:14,8275 (crypto …4243),crypto,buy,ETH,0.01218,0.01218,,,2463.0458477,30,filled,market,gtc,agentic
+2026-08-29 04:15,2026-08-29 04:15,8275 (crypto …4243),crypto,buy,SOL,0.09439,0.09439,,,104.88069936,9.9,filled,market,gtc,agentic
+2026-09-18 18:36,2026-09-18 18:36,8275 (crypto …4243),crypto,sell,ETH,0.008996,0.008996,2556.52,,2559.9739984,23.02,filled,limit,gtc,agentic
+2026-09-18 18:37,2026-09-18 18:37,8275 (crypto …4243),crypto,buy,DOGE,248.86,248.86,0.0884,,0.0883258,21.99,filled,limit,gtc,agentic
+2026-09-22 07:11,2026-09-22 07:11,8275 (crypto …4243),crypto,sell,DOGE,248.86,248.86,0.103455,,0.10360833,25.78,filled,limit,gtc,agentic
+2026-09-30 12:12,2026-09-30 12:12,8275 (crypto …4243),crypto,sell,SOL,0.09439,0.09439,117.47,,117.48412815,11.08,filled,limit,gtc,agentic
+2026-10-02 11:16,2026-10-02 11:26,8275 (crypto …4243),crypto,buy,PEPE,4793028,0,0.00000459,,,0,canceled,limit,gtc,agentic
+2026-10-02 13:17,2026-10-02 13:17,8275 (crypto …4243),crypto,buy,PEPE,4793028,4793028,0.00000459,,0.00000459,22,filled,limit,gtc,agentic
+2026-10-02 13:17,2026-10-02 21:39,8275 (crypto …4243),crypto,sell,PEPE,4793028,4793028,,0.00000413,0.00000413,19.79,filled,stop_loss,gtc,agentic
+2026-10-05 07:14,2026-10-05 07:14,8275 (crypto …4243),crypto,buy,FLOKI,758620,758620,0.000029,,0.00002899,22,filled,limit,gtc,agentic
+2026-10-05 07:14,2026-10-08 18:18,8275 (crypto …4243),crypto,sell,FLOKI,758620,758620,,0.00002609,0.00002608,19.78,filled,stop_loss,gtc,agentic
+2026-10-09 19:17,2026-10-09 19:17,8275 (crypto …4243),crypto,buy,SHIB,4021937,4021937,0.00000547,,0.00000547,22,filled,limit,gtc,agentic
+2026-10-09 19:17,2026-10-15 05:22,8275 (crypto …4243),crypto,sell,SHIB,4021937,4021937,,0.00000492,0.00000492,19.78,filled,stop_loss,gtc,agentic
+2026-10-19 07:18,2026-10-19 07:18,8275 (crypto …4243),crypto,buy,DOGE,273.97,273.97,0.0803,,0.08027836,22,filled,limit,gtc,agentic
+2026-10-19 07:18,2026-10-20 07:55,8275 (crypto …4243),crypto,sell,DOGE,273.97,0,,0.0723,,0,canceled,stop_loss,gfd,agentic
+2026-10-20 16:24,2026-10-30 03:21,8275 (crypto …4243),crypto,sell,DOGE,273.97,273.97,,0.07227,0.0720932,19.75,filled,stop_loss,gtc,agentic
+2026-10-30 14:20,2026-10-30 14:44,8275 (crypto …4243),crypto,buy,FLOKI,938967,938967,0.00002343,,0.00002343,22,filled,limit,gtc,agentic

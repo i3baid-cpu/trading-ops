@@ -1,0 +1,21 @@
+{
+  "_source": "Summary figures reported in 03_alpaca/HISTORY.md (backtest run Oct 29 2026 ~7:52 PM KWT with Lumibot YahooDataBacktesting). The tearsheet and trade list were not in the archive, so only these headline numbers are available.",
+  "strategy": "SmaCross 20/50 (daily)",
+  "period": "2021-01-01 to 2026-10-01",
+  "budget_usd": 10000,
+  "symbols": ["SPY", "QQQ", "AAPL", "MSFT"],
+  "strategy_total_return_pct": 2.0,
+  "strategy_cagr_pct": 0.31,
+  "strategy_sharpe": -3.47,
+  "strategy_max_drawdown_pct": -2.6,
+  "strategy_time_in_market_pct": 38,
+  "benchmark": "SPY buy and hold",
+  "benchmark_total_return_pct": 123.0,
+  "benchmark_cagr_pct": 15.04,
+  "benchmark_max_drawdown_pct": -24.49,
+  "trade_count": null,
+  "win_rate": null,
+  "profit_factor": null,
+  "paper_trades": 0,
+  "paper_status": "Paper account created Oct 29 2026. No crossover yet, so no paper trades. Email verification was still pending on Oct 30."
+}

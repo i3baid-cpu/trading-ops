@@ -1,0 +1,15 @@
+{
+  "strategy": "sma_cross",
+  "paper": true,
+  "symbols": ["SPY", "QQQ", "AAPL", "MSFT"],
+  "timeframe": "day",
+  "sleeptime": "1D",
+  "max_open_positions": 3,
+  "stake_pct": 0.05,
+  "stoploss_pct": 0.05,
+  "takeprofit_pct": 0.10,
+  "params": {
+    "fast": 20,
+    "slow": 50
+  }
+}

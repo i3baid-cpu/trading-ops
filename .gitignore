@@ -1,0 +1,13 @@
+# secrets and local state never enter this repository
+.env
+*.env
+**/config.json.bak*
+*.sqlite
+*.sqlite-*
+*state.json
+__pycache__/
+*.pyc
+logs/
+dashboard/screenshots/
+# the live Freqtrade config holds keys; only secrets-free copies belong here
+freqtrade_config_live.json
