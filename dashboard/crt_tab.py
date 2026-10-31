@@ -103,8 +103,8 @@ def render():
         lv = pd.DataFrame([{"Level": l.name, "Price": l.price, "Note": l.note} for l in a.levels])
         if len(lv):
             st.dataframe(lv, hide_index=True, width="stretch", column_config={"Price": st.column_config.NumberColumn(format="%.5g")})
-        if st.button("Log this signal"):
-            crt.append_log(LOG_PATH, a)
+        if st.button("Log this check"):
+            crt.append_log(LOG_PATH, a, sr)
             st.success(f"Logged to {os.path.basename(LOG_PATH)}")
     with right:
         st.plotly_chart(_chart(df, a), width="stretch", config={"displaylogo": False})

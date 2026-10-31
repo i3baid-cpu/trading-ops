@@ -73,6 +73,17 @@ def test_csv_parser_arabic_and_english():
         assert df["close"].iloc[-1] == 504
 
 
+def test_fils_sizing():
+    df = make_series()
+    df[["open", "high", "low", "close"]] *= 5  # ~2500 fils like BOURSA
+    a = crt.analyze(df, "BOURSA", "KW", capital=3000, risk_pct=1.0, min_rr=0.5, today=df["date"].iloc[-1])
+    if a.bias != "NO SETUP":
+        assert a.shares >= 1, a.reasons
+    r = crt.stock_read(df, "KW", capital=3000, today=df["date"].iloc[-1])
+    assert r["shares_now"] >= 1
+    assert crt.price_unit_factor(2762, "KW") == 1000 and crt.price_unit_factor(0.85, "KW") == 1 and crt.price_unit_factor(750, "US") == 1
+
+
 def test_outcome_evaluation():
     log = pd.DataFrame([{**{c: None for c in crt.LOG_COLS}, "ticker": "T", "as_of": "2026-03-01", "bias": "bullish",
                          "entry": 100.0, "stop": 95.0, "target1": 110.0, "rr": 2.0, "outcome": "pending"}])

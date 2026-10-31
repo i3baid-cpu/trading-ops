@@ -45,6 +45,12 @@ import pandas as pd
 KW_TICKS = [(100, 0.1), (250, 0.5), (500, 1.0), (1000, 2.0), (2000, 5.0), (float("inf"), 10.0)]
 
 
+def price_unit_factor(price: float, market: str) -> float:
+    """Yahoo and most exports quote Boursa Kuwait in fils while capital is in KWD. If a KW price is above 20
+    it is in fils, so money amounts (capital x risk%) are converted to fils before sizing."""
+    return 1000.0 if (market == "KW" and price > 20) else 1.0
+
+
 def tick_size(price: float, market: str) -> float:
     if market == "KW":
         for ceiling, tick in KW_TICKS:
@@ -246,7 +252,8 @@ def analyze(df: pd.DataFrame, ticker: str, market: str = "KW", capital: float = 
     rr = abs(t1 - entry) / risk_per_share if risk_per_share > 0 else 0.0
     A.entry, A.stop, A.target1, A.target2, A.rr = entry, stop, t1, t2, rr
     A.risk_amount = capital * risk_pct / 100.0
-    A.shares = int(math.floor(A.risk_amount / risk_per_share / lot) * lot) if risk_per_share > 0 else 0
+    unit = price_unit_factor(px, market)
+    A.shares = int(math.floor(A.risk_amount * unit / risk_per_share / lot) * lot) if risk_per_share > 0 else 0
     if rr < min_rr:
         A.reasons.append(f"Reward to risk to target 1 is {rr:.2f}, below the {min_rr:.1f} minimum. NO SETUP by rule.")
         A.bias = "NO SETUP"
@@ -257,7 +264,7 @@ def analyze(df: pd.DataFrame, ticker: str, market: str = "KW", capital: float = 
         return A
     A.bias = bias
     A.reasons.append(f"Entry {entry:.4g}, stop {stop:.4g} (one tick beyond the sweep extreme), target 1 {t1:.4g} (other side of the range), R:R {rr:.2f}.")
-    A.reasons.append(f"Size: risk {A.risk_amount:.2f} ({risk_pct:.1f}% of {capital:,.0f}) / {risk_per_share:.4g} per share = {A.shares} shares.")
+    A.reasons.append(f"Size: risk {A.risk_amount:.2f} ({risk_pct:.1f}% of {capital:,.0f}){' = ' + format(A.risk_amount * unit, ',.0f') + ' fils' if unit != 1 else ''} / {risk_per_share:.4g} per share = {A.shares} shares.")
     return A
 
 
@@ -265,19 +272,27 @@ def analyze(df: pd.DataFrame, ticker: str, market: str = "KW", capital: float = 
 # Signal log and outcome evaluation
 # --------------------------------------------------------------------------- #
 LOG_COLS = ["logged_at", "ticker", "market", "as_of", "bias", "entry", "stop", "target1", "target2", "rr", "shares",
-            "risk_amount", "confluence_n", "data_source", "outcome", "outcome_date", "r_multiple"]
+            "risk_amount", "confluence_n", "data_source", "outcome", "outcome_date", "r_multiple",
+            "read_verdict", "read_trend", "read_last", "read_support", "read_resistance", "read_rsi"]
 
 
-def append_log(path: str, a: Analysis) -> None:
+def append_log(path: str, a: Analysis, read: dict | None = None) -> None:
     row = {c: None for c in LOG_COLS}
     row.update({k: v for k, v in a.to_row().items() if k in LOG_COLS})
+    if read:
+        row.update({"read_verdict": read.get("verdict"), "read_trend": read.get("trend"), "read_last": read.get("last"),
+                    "read_support": read.get("support"), "read_resistance": read.get("resistance"),
+                    "read_rsi": (round(read["rsi"], 1) if read.get("rsi") is not None else None)})
     row["logged_at"] = datetime.utcnow().isoformat(timespec="seconds")
     row["outcome"] = "pending" if a.bias != "NO SETUP" else "no setup"
     try:
         log = pd.read_csv(path)
+        for c in LOG_COLS:
+            if c not in log.columns:
+                log[c] = None
     except FileNotFoundError:
         log = pd.DataFrame(columns=LOG_COLS)
-    log = pd.concat([log, pd.DataFrame([row])[LOG_COLS]], ignore_index=True)
+    log = pd.concat([log[LOG_COLS], pd.DataFrame([row])[LOG_COLS]], ignore_index=True)
     log.to_csv(path, index=False)
 
 
@@ -382,7 +397,8 @@ def stock_read(df: pd.DataFrame, market: str = "KW", capital: float = 1000.0, ri
     risk_ps = px - stop
     rr_now = (res - px) / risk_ps if risk_ps > 0 else 0.0
     risk_amt = capital * risk_pct / 100
-    shares_now = int(math.floor(risk_amt / risk_ps)) if risk_ps > 0 else 0
+    unit = price_unit_factor(px, market)
+    shares_now = int(math.floor(risk_amt * unit / risk_ps)) if risk_ps > 0 else 0
     wait_px = max(ema21, sup) if trend == "UPTREND" else sup
     if trend == "DOWNTREND":
         verdict = "AVOID FOR NOW"
