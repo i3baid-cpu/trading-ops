@@ -319,3 +319,85 @@ def explain(a: Analysis) -> str:
     lines.append("All candles used are completed sessions. Rules and parameters are fixed in crt.py; the same data gives the same answer.")
     lines.append("Educational pattern analysis, not financial advice. ICT/CRT concepts are hypotheses; the signal log is what tests them.")
     return "\n".join(lines)
+
+
+# --------------------------------------------------------------------------- #
+# Stock read: trend, momentum, price location, and a buy-now / wait / avoid verdict
+# --------------------------------------------------------------------------- #
+def rsi(s: pd.Series, n: int = 14) -> pd.Series:
+    d = s.diff()
+    up, dn = d.clip(lower=0), -d.clip(upper=0)
+    rs = up.ewm(alpha=1 / n, adjust=False).mean() / dn.ewm(alpha=1 / n, adjust=False).mean()
+    return 100 - 100 / (1 + rs)
+
+
+def stock_read(df: pd.DataFrame, market: str = "KW", capital: float = 1000.0, risk_pct: float = 1.0,
+               today: date | None = None) -> dict:
+    """Rule based read on completed daily candles. Returns a dict with trend, momentum, location, verdict, levels."""
+    d = closed_only(df, today)
+    n = len(d)
+    if n < 60:
+        return {"verdict": "NOT ENOUGH DATA", "lines": [f"{n} closed candles; need 60."]}
+    c = d["close"]
+    px = float(c.iloc[-1]); tk = tick_size(px, market)
+    e21, e50 = ema(c, 21), ema(c, 50)
+    s200 = c.rolling(200).mean() if n >= 200 else None
+    r = rsi(c)
+    a14 = atr(d)
+    hi20, lo20 = d["high"].tail(20).max(), d["low"].tail(20).min()
+    ret20 = (px / c.iloc[-21] - 1) * 100
+    slope50 = (e50.iloc[-1] / e50.iloc[-11] - 1) * 100
+    above200 = (px > s200.iloc[-1]) if s200 is not None else None
+
+    # Trend classification
+    if px > e21.iloc[-1] > e50.iloc[-1] and slope50 > 0 and (above200 in (True, None)):
+        trend = "UPTREND"
+    elif px < e21.iloc[-1] < e50.iloc[-1] and slope50 < 0 and (above200 in (False, None)):
+        trend = "DOWNTREND"
+    else:
+        trend = "SIDEWAYS / MIXED"
+
+    # Support and resistance from swing pivots, order of nearness
+    hs, ls = swing_points(d.tail(120).reset_index(drop=True))
+    tail = d.tail(120).reset_index(drop=True)
+    gap = 0.5 * float(a14.iloc[-1])  # ignore pivots sitting within half an ATR of price: too close to act on
+    supports = sorted({float(tail["low"].iloc[i]) for i in ls if tail["low"].iloc[i] < px - gap}, reverse=True)
+    resist = sorted({float(tail["high"].iloc[i]) for i in hs if tail["high"].iloc[i] > px + gap})
+    sup = supports[0] if supports else float(lo20)
+    res = resist[0] if resist else float(hi20)
+    ema21 = float(e21.iloc[-1])
+    ext_pct = (px / ema21 - 1) * 100
+    loc_pct = (px - lo20) / (hi20 - lo20) * 100 if hi20 > lo20 else 50.0
+    rsi_v = float(r.iloc[-1])
+
+    lines = [
+        f"Trend: {trend}. Close {px:.4g} vs EMA21 {ema21:.4g} and EMA50 {float(e50.iloc[-1]):.4g}; EMA50 slope over 10 sessions {slope50:+.1f}%"
+        + (f"; {'above' if above200 else 'below'} the 200 day average {float(s200.iloc[-1]):.4g}." if s200 is not None else "; 200 day average needs more history."),
+        f"Momentum: RSI(14) {rsi_v:.0f}, 20 session return {ret20:+.1f}%, price sits at {loc_pct:.0f}% of the 20 session range ({float(lo20):.4g} to {float(hi20):.4g}).",
+        f"Nearest support {sup:.4g} ({(px / sup - 1) * 100:+.1f}% below price), nearest resistance {res:.4g} ({(res / px - 1) * 100:+.1f}% above).",
+    ]
+
+    # Verdict rules
+    stop = sup - tk
+    risk_ps = px - stop
+    rr_now = (res - px) / risk_ps if risk_ps > 0 else 0.0
+    risk_amt = capital * risk_pct / 100
+    shares_now = int(math.floor(risk_amt / risk_ps)) if risk_ps > 0 else 0
+    wait_px = max(ema21, sup) if trend == "UPTREND" else sup
+    if trend == "DOWNTREND":
+        verdict = "AVOID FOR NOW"
+        lines.append(f"Verdict: the chart leans down. Do not buy at the last price. The first sign of change is a daily close back above EMA50 ({float(e50.iloc[-1]):.4g}); re-check then.")
+    elif trend == "UPTREND" and ext_pct <= 3.0 and rsi_v < 70 and rr_now >= 1.5:
+        verdict = "BUY ZONE AT LAST PRICE"
+        lines.append(f"Verdict: uptrend and price is close to support, so the last price {px:.4g} is an acceptable buy. Stop {stop:.4g} (one tick under support), first resistance {res:.4g}, reward to risk {rr_now:.1f}, size {shares_now} shares for {risk_amt:.2f} risk.")
+    elif trend == "UPTREND":
+        verdict = "WAIT FOR PULLBACK"
+        why = "extended above EMA21" if ext_pct > 3.0 else ("RSI above 70" if rsi_v >= 70 else f"reward to risk only {rr_now:.1f} to the next resistance")
+        lines.append(f"Verdict: the chart leans up but it is {why}. Wait for a pullback toward {wait_px:.4g} (EMA21 / support) rather than buying at {px:.4g}. If it never pulls back, let it go.")
+    else:
+        verdict = "RANGE: BUY LOW END ONLY"
+        lines.append(f"Verdict: no clear trend. Buying is only reasonable near the range low {float(lo20):.4g} with a stop below it; at {px:.4g} ({loc_pct:.0f}% of the range) the edge is thin. Watch for a daily close above {float(hi20):.4g} (breakout) or below {float(lo20):.4g} (breakdown).")
+    lines.append("This read is from completed daily candles. If the market is open, the live price can differ from the last close shown; the rules do not change.")
+    return {"verdict": verdict, "trend": trend, "rsi": rsi_v, "ret20": ret20, "support": sup, "resistance": res,
+            "ema21": ema21, "ema50": float(e50.iloc[-1]), "sma200": (float(s200.iloc[-1]) if s200 is not None else None),
+            "last": px, "stop_now": stop, "rr_now": rr_now, "shares_now": shares_now, "wait_price": wait_px, "lines": lines}

@@ -81,6 +81,17 @@ def test_outcome_evaluation():
     assert out["outcome"].iloc[0] == "target1" and out["r_multiple"].iloc[0] == 2.0
 
 
+def test_stock_read_verdicts():
+    df = make_series()
+    r = crt.stock_read(df, "KW", capital=3000, today=df["date"].iloc[-1])
+    assert r["verdict"] in ("BUY ZONE AT LAST PRICE", "WAIT FOR PULLBACK", "AVOID FOR NOW", "RANGE: BUY LOW END ONLY")
+    assert r["support"] < r["last"] < r["resistance"] and len(r["lines"]) >= 4
+    # a steadily falling series must be AVOID
+    down = df.copy(); down[["open", "high", "low", "close"]] = down[["open", "high", "low", "close"]].values[::-1] * 1.0
+    down["close"] = np.linspace(600, 400, len(down)); down["open"] = down["close"] + 1; down["high"] = down["close"] + 3; down["low"] = down["close"] - 3
+    assert crt.stock_read(down, "KW", today=df["date"].iloc[-1])["verdict"] == "AVOID FOR NOW"
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):

@@ -65,6 +65,27 @@ def render():
         st.info("Load daily candles to run the check. TickerChart has no public API, so export a CSV from it (or from boursakuwait.com.kw) and upload it here; Yahoo covers Boursa Kuwait daily bars under the .KW suffix.", icon="ℹ️")
         return
 
+    # ---- Stock read: trend, momentum, location, verdict ----
+    sr = crt.stock_read(df, market, capital=capital, risk_pct=risk_pct)
+    st.markdown("#### Stock read <span class='src'>trend, momentum and where the last price sits; rule based</span>", unsafe_allow_html=True)
+    vt = {"BUY ZONE AT LAST PRICE": "pos", "AVOID FOR NOW": "neg", "WAIT FOR PULLBACK": "warn", "RANGE: BUY LOW END ONLY": "warn"}.get(sr["verdict"], "")
+    k = st.columns(4)
+    with k[0]:
+        st.markdown(f"<div class='kpi {vt}'><div class='l'>Verdict</div><div class='v' style='font-size:16px;white-space:normal'>{sr['verdict']}</div><div class='d'>last close {sr.get('last', float('nan')):.4g}</div></div>", unsafe_allow_html=True)
+    with k[1]:
+        st.markdown(f"<div class='kpi'><div class='l'>Chart leaning</div><div class='v' style='font-size:16px'>{sr.get('trend', '')}</div><div class='d'>RSI {sr.get('rsi', float('nan')):.0f} · 20d {sr.get('ret20', float('nan')):+.1f}%</div></div>", unsafe_allow_html=True)
+    with k[2]:
+        st.markdown(f"<div class='kpi'><div class='l'>Support / resistance</div><div class='v' style='font-size:16px'>{sr.get('support', float('nan')):.4g} / {sr.get('resistance', float('nan')):.4g}</div><div class='d'>nearest swing levels</div></div>", unsafe_allow_html=True)
+    with k[3]:
+        if sr["verdict"] == "BUY ZONE AT LAST PRICE":
+            st.markdown(f"<div class='kpi'><div class='l'>If buying now</div><div class='v' style='font-size:16px'>stop {sr['stop_now']:.4g} · {sr['shares_now']} sh</div><div class='d'>R:R {sr['rr_now']:.1f} to resistance</div></div>", unsafe_allow_html=True)
+        elif sr["verdict"] == "WAIT FOR PULLBACK":
+            st.markdown(f"<div class='kpi'><div class='l'>Price to wait for</div><div class='v' style='font-size:16px'>{sr['wait_price']:.4g}</div><div class='d'>EMA21 / support</div></div>", unsafe_allow_html=True)
+        else:
+            st.markdown(f"<div class='kpi'><div class='l'>Levels to watch</div><div class='v' style='font-size:16px'>{sr.get('ema50', float('nan')):.4g}</div><div class='d'>EMA50 reclaim / range edges</div></div>", unsafe_allow_html=True)
+    st.markdown("<div class='panel'><div class='rule' style='white-space:pre-wrap'>" + "\n".join(sr["lines"]) + "</div></div>", unsafe_allow_html=True)
+
+    st.markdown("#### CRT setup check <span class='src'>exact entry only when a sweep exists</span>", unsafe_allow_html=True)
     a = crt.analyze(df, ticker.upper(), market, capital=capital, risk_pct=risk_pct, min_rr=min_rr, data_source=source_note)
     left, right = st.columns([1, 1.5])
     with left:
