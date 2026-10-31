@@ -68,6 +68,20 @@ cd /root/trading-ops/dashboard && python tests/test_data.py       # DASH_MODE un
 ```
 Result: all 5 tests pass (`test_no_live_trading_surface` now also scans data_live.py).
 
+Re-run 2026-10-31 (same data range). The host Python 3.14 has no numpy, pandas or pip, so the tests ran in a
+throwaway container from the local Freqtrade image (it has numpy and pandas), with no network and the repo
+mounted read only:
+
+```bash
+docker run --rm --network none --user 0 --entrypoint python3 \
+  -e PYTHONDONTWRITEBYTECODE=1 -e PYTHONUSERBASE=/home/ftuser/.local \
+  -v /root/trading-ops/dashboard:/app:ro -w /app \
+  freqtradeorg/freqtrade:stable tests/test_data.py
+```
+Result: all 5 tests pass. The same container, given `DASH_MODE=live`, the four path variables and the
+compose mounts (all `:ro`), gave the live figures above again: 23 closed, net +1.1392 USDT, PF 1.314, drawdown
+2.339, reconciliation 21 PASS / 1 INFO / 1 N/A / 0 FAIL.
+
 Live mode was exercised on the host against the real files (`DASH_MODE=live`, FT_DB, FT_CONFIG,
 LUMIBOT_STATE, LUMIBOT_CONFIG pointing at the paths above) with Streamlit's AppTest on every tab:
 23 closed MemeSleeveV1 trades, net +1.1392 USDT, PF 1.314, max drawdown 2.339 USDT; Alpaca "no paper trades
