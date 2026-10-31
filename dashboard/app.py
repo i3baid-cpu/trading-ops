@@ -22,7 +22,7 @@ import data as D
 if D.LIVE:
     import data_live as DL
 
-st.set_page_config(page_title="Trading Command Center", page_icon="📊", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Trading Command Center", page_icon="📊", layout="wide", initial_sidebar_state="auto")
 
 # --------------------------------------------------------------------------- #
 # Styling
@@ -53,6 +53,33 @@ html, body, [class*="css"] { font-family: Inter, "Segoe UI", system-ui, sans-ser
 .src { color: #9a9c99; font-size: 11.5px; }
 .ro { background: rgba(25,158,112,.12); border: 1px solid rgba(25,158,112,.4); color: #4fd0a0; border-radius: 8px; padding: 6px 12px; font-size: 12px; font-weight: 600; }
 div[data-testid="stMetric"] { background: #1c1f26; border: 1px solid #2a2e38; border-radius: 10px; padding: 10px 14px; }
+/* iPad and iPhone: tighter paddings, smaller headline numbers, scrollable tabs, no horizontal page scroll */
+@media (max-width: 1024px) {
+  .block-container { padding-left: 0.9rem; padding-right: 0.9rem; padding-top: 0.8rem; }
+  .kpi { min-height: 84px; padding: 10px 12px; }
+  .kpi .v { font-size: 17px; }
+  h2 { font-size: 1.45rem !important; }
+  h4 { font-size: 1.0rem !important; }
+  div[data-testid="stTabs"] [role="tablist"] { overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none; }
+  div[data-testid="stTabs"] [role="tab"] { white-space: nowrap; font-size: 13px; }
+}
+@media (max-width: 640px) {
+  .block-container { padding-left: 0.6rem; padding-right: 0.6rem; padding-top: 2.6rem; }
+  /* two KPI tiles per row on phones instead of one tall stack */
+  div[data-testid="stHorizontalBlock"] { flex-wrap: wrap !important; gap: 0.5rem !important; }
+  div[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"] { flex: 1 1 46% !important; min-width: 46% !important; width: auto !important; }
+  /* charts, tables and text panels get the full width; only KPI tiles pair up */
+  div[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"]:has(.js-plotly-plot),
+  div[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"]:has([data-testid="stDataFrame"]),
+  div[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"]:has(.panel) { flex: 1 1 100% !important; min-width: 100% !important; }
+  .modebar { display: none !important; }
+  .kpi { min-height: 72px; }
+  .kpi .v { font-size: 16px; }
+  .kpi .l { font-size: 10px; }
+  .rule { font-size: 11.5px; }
+  .panel table { font-size: 12px !important; }
+  .js-plotly-plot { max-height: 320px; }
+}
 </style>
 """,
     unsafe_allow_html=True,
@@ -317,24 +344,8 @@ with tabs[0]:
             v3 = ft_all[ft_all["entry_time"] >= DL.V3_START]
             st.caption(f"MemeSleeveV3 (4h, dry-run) since {DL.V3_START:%Y-%m-%d %H:%M} UTC: {DL.V3_NOTE}. "
                        f"{len(v3)} V3 trade(s) so far; V1 trades opened before the switch stay labelled V1.")
-            st.markdown("#### Alpaca TrendFilter sleeve (paper)")
-            al_pos, al_sum = X["al_live"]
-            if al_pos is None:
-                st.info(f"{al_sum['status'].capitalize()}. Ledger {LUMIBOT_STATE_NOTE(al_sum)}.", icon="ℹ️")
-            else:
-                c1, c2, c3 = st.columns(3)
-                with c1:
-                    kpi("Invested at cost", money(al_sum["invested"]), f"of {money(al_sum['capital'], digits=0)} sleeve")
-                with c2:
-                    kpi("Sleeve cash", money(al_sum["cash"]), "capital + realised − cost")
-                with c3:
-                    kpi("Realised P&L", money(al_sum["realized"], signed=True), "from the ledger", tone_of(al_sum["realized"]))
-                show = al_pos.rename(columns={"symbol": "Symbol", "qty": "Qty", "cost_usd": "Cost $", "avg_cost": "Avg cost", "weight_at_cost": "Weight at cost"})
-                show["Weight at cost"] = (show["Weight at cost"] * 100).round(1)
-                st.dataframe(show, hide_index=True, width="stretch",
-                             column_config={"Qty": st.column_config.NumberColumn(format="%.3f"), "Cost $": st.column_config.NumberColumn(format="%.2f"),
-                                            "Avg cost": st.column_config.NumberColumn(format="%.2f")})
-                st.caption(f"Market value and unrealised P&L: {NA} (the dashboard has no price feed or broker access). Ledger {LUMIBOT_STATE_NOTE(al_sum)}.")
+    import trendfilter_panel
+    trendfilter_panel.render(kpi, money, tone_of, badge, X.get("al_live"), X["al_cfg"])
 
 # =========================================================================== #
 # B. PERFORMANCE ANALYTICS
