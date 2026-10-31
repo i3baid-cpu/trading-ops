@@ -155,12 +155,14 @@ def analyze(df: pd.DataFrame, ticker: str, market: str = "KW", capital: float = 
         elif c["low"] <= rng["low"] - tk and rng["low"] <= c["close"] <= rng["high"]:
             sweep = dict(kind="low", idx=i, range_high=float(rng["high"]), range_low=float(rng["low"]), extreme=float(c["low"]), date=str(c["date"]))
     if sweep is None:
-        A.reasons.append(f"No CRT sweep in the last {crt_lookback} closed candles (a close back inside the prior candle's range after taking its high or low by >= 1 tick). NO SETUP by rule.")
-        return A
-    A.levels += [Level("CRT range high", sweep["range_high"]), Level("CRT range low", sweep["range_low"]), Level("Sweep extreme", sweep["extreme"], sweep["date"])]
-    bias = "bearish" if sweep["kind"] == "high" else "bullish"
-    A.reasons.append(f"CRT: candle of {sweep['date']} took the prior {sweep['kind']} ({sweep['extreme']:.4g}) and closed back inside {sweep['range_low']:.4g} to {sweep['range_high']:.4g}: {bias} bias.")
-
+        A.reasons.append(f"No CRT sweep in the last {crt_lookback} closed candles (a close back inside the prior candle's range after taking its high or low by >= 1 tick). NO SETUP by rule: no entry price exists.")
+        A.reasons.append(f"What would create a setup next session: a trade below {float(last['low']):.4g} (yesterday's low) that closes back above it -> bullish; or a trade above {float(last['high']):.4g} (yesterday's high) that closes back below it -> bearish. Run the check again after that session closes.")
+        A.levels += [Level("Watch: bullish trigger", float(last["low"]), "sweep below, close back above"), Level("Watch: bearish trigger", float(last["high"]), "sweep above, close back below")]
+        bias = None
+    else:
+        A.levels += [Level("CRT range high", sweep["range_high"]), Level("CRT range low", sweep["range_low"]), Level("Sweep extreme", sweep["extreme"], sweep["date"])]
+        bias = "bearish" if sweep["kind"] == "high" else "bullish"
+        A.reasons.append(f"CRT: candle of {sweep['date']} took the prior {sweep['kind']} ({sweep['extreme']:.4g}) and closed back inside {sweep['range_low']:.4g} to {sweep['range_high']:.4g}: {bias} bias.")
     # Liquidity: equal highs / lows among swing points
     hs, ls = swing_points(d.tail(liq_lookback).reset_index(drop=True))
     tail = d.tail(liq_lookback).reset_index(drop=True)
@@ -214,7 +216,10 @@ def analyze(df: pd.DataFrame, ticker: str, market: str = "KW", capital: float = 
         hi_i, lo_i = hs_all[-1], ls_all[-1]
         a, b = (d["low"].iloc[lo_i], d["high"].iloc[hi_i]) if lo_i < hi_i else (d["high"].iloc[hi_i], d["low"].iloc[lo_i])
         f50, f618 = b - 0.5 * (b - a), b - 0.618 * (b - a)
-        A.levels.append(Level("Fib 0.5 to 0.618", (f50 + f618) / 2, f"{min(f50, f618):.4g} to {max(f50, f618):.4g} of last impulse"))
+        A.levels.append(Level("Fib 0.5 to 0.618", float((f50 + f618) / 2), f"{min(f50, f618):.4g} to {max(f50, f618):.4g} of last impulse"))
+
+    if bias is None:
+        return A
 
     # Confluence (informational; the decision rests on CRT + reward to risk)
     if (bias == "bullish" and A.ema_state.startswith("bullish")) or (bias == "bearish" and A.ema_state.startswith("bearish")):

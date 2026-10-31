@@ -70,6 +70,8 @@ def render():
     with left:
         tone = {"bullish": "pos", "bearish": "neg"}.get(a.bias, "warn")
         st.markdown(f"<div class='kpi {tone}'><div class='l'>Decision</div><div class='v'>{a.bias.upper()}</div><div class='d'>as of close {a.as_of} · {len(a.confluence)} confluence factors</div></div>", unsafe_allow_html=True)
+        if a.bias == "NO SETUP":
+            st.warning("No trade and no entry price: " + (a.reasons[0] if a.reasons else "") + " The levels table lists what has to happen for a setup to exist.", icon="⛔")
         if a.bias != "NO SETUP":
             k = st.columns(2)
             with k[0]:
