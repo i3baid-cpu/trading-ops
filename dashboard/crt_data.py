@@ -84,3 +84,28 @@ def fetch_yahoo(ticker: str, market: str, period: str = "2y") -> tuple[pd.DataFr
     df = h.reset_index().rename(columns={"Date": "date", "Open": "open", "High": "high", "Low": "low", "Close": "close", "Volume": "volume"})
     df["date"] = pd.to_datetime(df["date"]).dt.date
     return df[["date", "open", "high", "low", "close", "volume"]], f"Yahoo Finance {sym}, daily, fetched now"
+
+
+def fetch_fundamentals(ticker: str, market: str) -> dict:
+    """A few valuation figures from Yahoo, each marked Not available when missing. Read only."""
+    keys = {"trailingPE": "P/E (trailing)", "forwardPE": "P/E (forward)", "dividendYield": "Dividend yield",
+            "trailingAnnualDividendYield": "Trailing dividend yield", "priceToBook": "Price to book",
+            "marketCap": "Market cap", "returnOnEquity": "Return on equity", "revenueGrowth": "Revenue growth (yoy)",
+            "payoutRatio": "Payout ratio", "fiftyTwoWeekHigh": "52w high", "fiftyTwoWeekLow": "52w low"}
+    out = {v: "Not available" for v in keys.values()}
+    try:
+        import yfinance as yf
+        info = yf.Ticker(yahoo_symbol(ticker, market)).info or {}
+    except Exception:
+        return out
+    for k, label in keys.items():
+        v = info.get(k)
+        if v is None:
+            continue
+        if k in ("dividendYield", "trailingAnnualDividendYield", "returnOnEquity", "revenueGrowth", "payoutRatio"):
+            out[label] = f"{float(v) * (100 if float(v) < 1 else 1):.1f}%"
+        elif k == "marketCap":
+            out[label] = f"{float(v) / 1e6:,.0f} M"
+        else:
+            out[label] = f"{float(v):.4g}"
+    return out

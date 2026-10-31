@@ -42,6 +42,11 @@ def render():
         risk_pct = st.number_input("Risk per trade %", min_value=0.1, max_value=5.0, value=1.0, step=0.1)
     with c5:
         min_rr = st.number_input("Min reward:risk", min_value=1.0, max_value=5.0, value=2.0, step=0.5)
+    h1, h2 = st.columns([1, 1])
+    with h1:
+        horizon = st.radio("Horizon", ["Swing (days to weeks)", "Long term (1 to 2 years)"], horizontal=True)
+    with h2:
+        max_pos = st.number_input("Max position % of capital (long term)", min_value=1.0, max_value=50.0, value=10.0, step=1.0)
     src = st.radio("Price data", ["Upload CSV (TickerChart or Boursa Kuwait export)", "Yahoo Finance (daily)"], horizontal=True)
     df, source_note = None, ""
     if src.startswith("Upload"):
@@ -64,6 +69,26 @@ def render():
     if df is None:
         st.info("Load daily candles to run the check. TickerChart has no public API, so export a CSV from it (or from boursakuwait.com.kw) and upload it here; Yahoo covers Boursa Kuwait daily bars under the .KW suffix.", icon="ℹ️")
         return
+
+    if horizon.startswith("Long"):
+        lt = crt.long_term_read(df, market, capital=capital, max_position_pct=max_pos)
+        st.markdown("#### Long term read <span class='src'>weekly chart, completed weeks only; for a 1 to 2 year hold</span>", unsafe_allow_html=True)
+        vt = {"ACCUMULATION ZONE": "pos", "WAIT: DOWNTREND ON THE WEEKLY": "neg"}.get(lt["verdict"], "warn")
+        k = st.columns(4)
+        with k[0]:
+            st.markdown(f"<div class='kpi {vt}'><div class='l'>Verdict</div><div class='v' style='font-size:15px;white-space:normal'>{lt['verdict']}</div><div class='d'>{lt.get('trend', '')}</div></div>", unsafe_allow_html=True)
+        with k[1]:
+            st.markdown(f"<div class='kpi'><div class='l'>vs 40 week average</div><div class='v' style='font-size:16px'>{lt.get('dist_ma', float('nan')):+.1f}%</div><div class='d'>MA40 {lt.get('ma40', float('nan')):.4g}</div></div>", unsafe_allow_html=True)
+        with k[2]:
+            st.markdown(f"<div class='kpi'><div class='l'>From 52 week high</div><div class='v' style='font-size:16px'>{lt.get('off_high', float('nan')):+.1f}%</div><div class='d'>range {lt.get('lo52', float('nan')):.4g} to {lt.get('hi52', float('nan')):.4g}</div></div>", unsafe_allow_html=True)
+        with k[3]:
+            st.markdown(f"<div class='kpi'><div class='l'>Staged plan</div><div class='v' style='font-size:16px'>3 × {lt.get('tranche', 0)} sh</div><div class='d'>max {max_pos:.0f}% of capital</div></div>", unsafe_allow_html=True)
+        st.markdown("<div class='panel'><div class='rule' style='white-space:pre-wrap'>" + "\n".join(lt["lines"]) + "</div></div>", unsafe_allow_html=True)
+        if src.startswith("Yahoo"):
+            f = crt_data.fetch_fundamentals(ticker, market)
+            st.markdown("<div class='panel'><h4>Fundamentals (Yahoo Finance; verify against the company's filings on boursakuwait.com.kw)</h4><table style='width:100%;font-size:13px'>" + "".join(f"<tr><td style='color:#9a9c99'>{k}</td><td class='rule'>{v}</td></tr>" for k, v in f.items()) + "</table></div>", unsafe_allow_html=True)
+        else:
+            st.caption("Fundamentals are fetched only with the Yahoo source.")
 
     # ---- Stock read: trend, momentum, location, verdict ----
     sr = crt.stock_read(df, market, capital=capital, risk_pct=risk_pct)

@@ -39,3 +39,13 @@ Answers "is the last price a reasonable buy, or wait, and which way does the cha
   stop one tick under support and size from the risk setting. UPTREND otherwise -> WAIT FOR PULLBACK to EMA21
   or support. SIDEWAYS -> RANGE: BUY LOW END ONLY near the 20 session low, watch the range edges.
 * Always from completed daily candles; a live price during the session can differ, the rules do not.
+
+## Long term read (horizon = 1 to 2 years)
+Weekly candles, completed weeks only. Trend: UPTREND when the weekly close is above the 40 week average, the
+10 week EMA is above the 30 week EMA and the 40 week average is rising over 8 weeks; DOWNTREND when all
+reversed; otherwise SIDEWAYS / TURNING. Verdicts: WAIT in a downtrend (first tranche only after a weekly close
+above the 40 week average); EXTENDED when more than 15% above the 40 week average; ACCUMULATION ZONE in an
+uptrend within 15% of it; NEUTRAL otherwise. Every verdict comes with a three tranche plan sized to a maximum
+position percentage of capital, and an invalidation at the 52 week low. Valuation is shown from Yahoo
+(P/E, dividend yield, price to book, payout, revenue growth) and must be verified against the company's filings;
+the chart does not judge value.

@@ -84,6 +84,15 @@ def test_fils_sizing():
     assert crt.price_unit_factor(2762, "KW") == 1000 and crt.price_unit_factor(0.85, "KW") == 1 and crt.price_unit_factor(750, "US") == 1
 
 
+def test_long_term_read():
+    df = make_series(n=400)
+    r = crt.long_term_read(df, "KW", capital=3000, max_position_pct=10, today=df["date"].iloc[-1])
+    assert r["verdict"] in ("ACCUMULATION ZONE", "WAIT: DOWNTREND ON THE WEEKLY", "EXTENDED: STAGE IN SLOWLY", "NEUTRAL: STAGE IN, DO NOT RUSH")
+    assert r["lo52"] <= r["last_weekly"] <= r["hi52"] and r["tranche"] >= 1
+    short = crt.long_term_read(df.head(100), "KW", today=df["date"].iloc[100])
+    assert short["verdict"] == "NOT ENOUGH HISTORY"
+
+
 def test_outcome_evaluation():
     log = pd.DataFrame([{**{c: None for c in crt.LOG_COLS}, "ticker": "T", "as_of": "2026-03-01", "bias": "bullish",
                          "entry": 100.0, "stop": 95.0, "target1": 110.0, "rr": 2.0, "outcome": "pending"}])

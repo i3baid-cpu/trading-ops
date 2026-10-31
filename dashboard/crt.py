@@ -417,3 +417,68 @@ def stock_read(df: pd.DataFrame, market: str = "KW", capital: float = 1000.0, ri
     return {"verdict": verdict, "trend": trend, "rsi": rsi_v, "ret20": ret20, "support": sup, "resistance": res,
             "ema21": ema21, "ema50": float(e50.iloc[-1]), "sma200": (float(s200.iloc[-1]) if s200 is not None else None),
             "last": px, "stop_now": stop, "rr_now": rr_now, "shares_now": shares_now, "wait_price": wait_px, "lines": lines}
+
+
+# --------------------------------------------------------------------------- #
+# Long term read: weekly trend, distance from the 52 week extremes, staged entry plan
+# --------------------------------------------------------------------------- #
+def to_weekly(df: pd.DataFrame) -> pd.DataFrame:
+    d = df.copy()
+    d["date"] = pd.to_datetime(d["date"])
+    w = d.set_index("date").resample("W-THU").agg({"open": "first", "high": "max", "low": "min", "close": "last", "volume": "sum"}).dropna()
+    return w.reset_index()
+
+
+def long_term_read(df: pd.DataFrame, market: str = "KW", capital: float = 1000.0, max_position_pct: float = 10.0,
+                   today: date | None = None) -> dict:
+    """Weekly chart read for a 1 to 2 year holder. Completed weeks only (the current week is dropped)."""
+    d = closed_only(df, today)
+    w = to_weekly(d)
+    w = w.iloc[:-1] if len(w) and pd.Timestamp(w["date"].iloc[-1]).date() >= (today or datetime.utcnow().date()) else w
+    n = len(w)
+    if n < 30:
+        return {"verdict": "NOT ENOUGH HISTORY", "lines": [f"{n} completed weeks; need 30 (about 7 months) for a long term read."]}
+    c = w["close"]
+    px = float(c.iloc[-1])
+    ma40 = c.rolling(40).mean() if n >= 40 else c.rolling(n).mean()
+    e10, e30 = ema(c, 10), ema(c, 30)
+    hi52, lo52 = float(w["high"].tail(52).max()), float(w["low"].tail(52).min())
+    off_high = (px / hi52 - 1) * 100
+    off_low = (px / lo52 - 1) * 100
+    ma40v = float(ma40.iloc[-1])
+    slope = (ma40.iloc[-1] / ma40.iloc[-9] - 1) * 100 if n >= 48 else float("nan")
+    ret52 = (px / c.iloc[-53] - 1) * 100 if n >= 53 else float("nan")
+    if px > ma40v and e10.iloc[-1] > e30.iloc[-1] and (math.isnan(slope) or slope > 0):
+        trend = "LONG TERM UPTREND"
+    elif px < ma40v and e10.iloc[-1] < e30.iloc[-1] and (math.isnan(slope) or slope < 0):
+        trend = "LONG TERM DOWNTREND"
+    else:
+        trend = "LONG TERM SIDEWAYS / TURNING"
+    dist_ma = (px / ma40v - 1) * 100
+    lines = [
+        f"Weekly trend: {trend}. Last weekly close {px:.4g} vs 40 week average {ma40v:.4g} ({dist_ma:+.1f}%); 10 week EMA {'above' if e10.iloc[-1] > e30.iloc[-1] else 'below'} 30 week EMA"
+        + (f"; 40 week average slope over 8 weeks {slope:+.1f}%." if not math.isnan(slope) else "."),
+        f"52 week range {lo52:.4g} to {hi52:.4g}: price is {off_high:+.1f}% from the high and {off_low:+.1f}% above the low"
+        + (f"; 52 week return {ret52:+.1f}%." if not math.isnan(ret52) else "."),
+    ]
+    unit = price_unit_factor(px, market)
+    max_pos_money = capital * max_position_pct / 100
+    total_shares = int(max_pos_money * unit / px)
+    tranche = total_shares // 3
+    if trend == "LONG TERM DOWNTREND":
+        verdict = "WAIT: DOWNTREND ON THE WEEKLY"
+        lines.append(f"Verdict: the weekly chart is in a downtrend. For a 1 to 2 year hold, waiting costs little: the first evidence of a turn is a weekly close above the 40 week average ({ma40v:.4g}). Start the first tranche only after that.")
+    elif dist_ma > 15:
+        verdict = "EXTENDED: STAGE IN SLOWLY"
+        lines.append(f"Verdict: uptrend but {dist_ma:.0f}% above the 40 week average, which is stretched for a slow stock. Buy one tranche now and the rest only on pullbacks toward {ma40v:.4g}.")
+    elif trend == "LONG TERM UPTREND":
+        verdict = "ACCUMULATION ZONE"
+        lines.append(f"Verdict: uptrend and within {dist_ma:.0f}% of the 40 week average, a reasonable zone to accumulate for a long hold. Price being {abs(off_high):.0f}% below the 52 week high is normal here.")
+    else:
+        verdict = "NEUTRAL: STAGE IN, DO NOT RUSH"
+        lines.append(f"Verdict: no clear weekly trend. A staged entry is sensible; a single lump at any price is a bet on timing you do not need to make for a 2 year hold.")
+    lines.append(f"Staged plan for a maximum position of {max_position_pct:.0f}% of capital ({max_pos_money:,.0f}): about {total_shares} shares in three tranches of {tranche}: one now or at the next weekly close, one if price reaches the 40 week average ({ma40v:.4g}), one on a weekly close above the 52 week high ({hi52:.4g}) or after the next dividend date, whichever comes first.")
+    lines.append(f"Long term invalidation: a weekly close {(lo52):.4g} or below (the 52 week low) means the thesis is wrong; review rather than add.")
+    lines.append("The chart cannot judge value. Check the dividend yield and price to earnings in the fundamentals panel before buying; a 2% better entry matters less over two years than whether profits and dividends grow.")
+    return {"verdict": verdict, "trend": trend, "last_weekly": px, "ma40": ma40v, "hi52": hi52, "lo52": lo52,
+            "off_high": off_high, "dist_ma": dist_ma, "shares_total": total_shares, "tranche": tranche, "lines": lines}
