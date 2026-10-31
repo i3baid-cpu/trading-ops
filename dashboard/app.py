@@ -193,7 +193,7 @@ st.markdown("## Trading Command Center")
 st.caption(f"Four separate setups, one read-only view. Times shown in {tz_name}. Latest record in the archive: {fmt_time(ref_time, TZ)}.")
 
 tab_names = ["A · Executive Overview", "B · Performance", "C · Strategy Comparison", "D · Trade Explorer",
-             "E · Risk", "F · System Health", "G · Signal Explanation"]
+             "E · Risk", "F · System Health", "G · Signal Explanation", "H · CRT Stock Check"]
 tabs = st.tabs(tab_names)
 
 # =========================================================================== #
@@ -754,6 +754,13 @@ TARGET: none on file (docstring elsewhere says ~+12%)<br>
 EXIT: stop fill or discretionary limit sell<br>
 5 round trips: 1 win (+3.79), 4 stops (−2.21 to −2.25)<br>
 <span style='color:#f0b84a'>no written rule document found</span></div></div>""", unsafe_allow_html=True)
+
+# =========================================================================== #
+# H. CRT STOCK CHECK
+# =========================================================================== #
+with tabs[7]:
+    import crt_tab
+    crt_tab.render()
 
 st.markdown("---")
 st.markdown("<span class='src'>Read-only analytics. No broker, exchange or bot connection is opened by this application and no order can be placed from it. Sources: audit pack of Oct 30 2026. Nothing shown here is estimated; where a figure cannot be derived from the records it is marked Not available.</span>", unsafe_allow_html=True)

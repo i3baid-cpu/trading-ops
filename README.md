@@ -9,7 +9,7 @@ results. Started from the Oct 30 2026 audit.
 | dashboard/ | Streamlit + Plotly read only dashboard (seven screens). See dashboard/README.md |
 | fixes/ | Strategy and config versions produced by the audit: MemeSleeveV2 (rejected by backtest), Alpaca TrendFilter (passed, on paper), Robinhood RULES_v2 |
 | deploy/ | VPS deployment: dashboard compose file bound to localhost and the Tailscale IP, deploy instructions |
-| docs/ | Specs and screenshots; LIVE_LOADER_SPEC.md is the open task for the VPS agent |
+| docs/ | Specs and screenshots: LIVE_LOADER_SPEC.md (done), CRT_RULES_v2.md (the rule set behind dashboard tab H) |
 | results/ | Backtests and weekly audits, pushed from the VPS |
 
 Status on 31 Oct 2026: Freqtrade runs MemeSleeveV3 in dry run (forward test); Lumibot runs TrendFilter on

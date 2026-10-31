@@ -5,6 +5,7 @@
 *.sqlite
 *.sqlite-*
 *state.json
+results/crt/crt_log.csv
 __pycache__/
 *.pyc
 logs/

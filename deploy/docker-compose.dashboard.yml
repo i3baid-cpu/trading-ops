@@ -15,6 +15,7 @@ services:
       - LUMIBOT_STATE=/live/lumibot/strategies/trend_filter_state.json
       - LUMIBOT_CONFIG=/live/lumibot/config.json
       - TZ=Asia/Kuwait
+      - CRT_LOG=/app/crt_log/crt_log.csv
     volumes:
       # read only views of the live data; the dashboard can see, never change.
       # Directories, not single files: the sqlite is in WAL mode (recent trades sit in the -wal/-shm files next
@@ -24,6 +25,8 @@ services:
       - /root/lumibot/strategies:/live/lumibot/strategies:ro
       - /root/lumibot/config.json:/live/lumibot/config.json:ro
       - ../dashboard/data:/app/data:ro
+      # the only writable mount: the CRT signal log, kept in the repository's results folder
+      - ../results/crt:/app/crt_log
     read_only: true
     tmpfs:
       - /tmp
