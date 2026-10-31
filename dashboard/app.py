@@ -292,7 +292,7 @@ with tabs[0]:
         show["weight"] = (show["weight"] * 100).round(1)
         show["basis_coverage"] = (show["basis_coverage"] * 100).round(0)
         show.columns = ["Symbol", "Type", "Qty", "Price", "Value $", "Weight %", "Unreal. $ (known basis)", "Basis known %", "Price as of"]
-        st.dataframe(show, hide_index=True, use_container_width=True,
+        st.dataframe(show, hide_index=True, width="stretch",
                      column_config={"Qty": st.column_config.NumberColumn(format="%.6g"), "Price": st.column_config.NumberColumn(format="%.6g"),
                                     "Value $": st.column_config.NumberColumn(format="%.2f"), "Unreal. $ (known basis)": st.column_config.NumberColumn(format="%+.2f")})
         breaches = pos[pos["breach"]]
@@ -331,7 +331,7 @@ with tabs[0]:
                     kpi("Realised P&L", money(al_sum["realized"], signed=True), "from the ledger", tone_of(al_sum["realized"]))
                 show = al_pos.rename(columns={"symbol": "Symbol", "qty": "Qty", "cost_usd": "Cost $", "avg_cost": "Avg cost", "weight_at_cost": "Weight at cost"})
                 show["Weight at cost"] = (show["Weight at cost"] * 100).round(1)
-                st.dataframe(show, hide_index=True, use_container_width=True,
+                st.dataframe(show, hide_index=True, width="stretch",
                              column_config={"Qty": st.column_config.NumberColumn(format="%.3f"), "Cost $": st.column_config.NumberColumn(format="%.2f"),
                                             "Avg cost": st.column_config.NumberColumn(format="%.2f")})
                 st.caption(f"Market value and unrealised P&L: {NA} (the dashboard has no price feed or broker access). Ledger {LUMIBOT_STATE_NOTE(al_sum)}.")
@@ -356,13 +356,13 @@ with tabs[1]:
         with col:
             kpi(l, v, "", t)
     ec = D.equity_curve(P)
-    st.plotly_chart(C.equity_fig(ec, sys_choice, cur), use_container_width=True, config={"displaylogo": False})
+    st.plotly_chart(C.equity_fig(ec, sys_choice, cur), width="stretch", config={"displaylogo": False})
     cA, cB = st.columns(2)
     with cA:
-        st.plotly_chart(C.drawdown_fig(ec, cur), use_container_width=True, config={"displaylogo": False})
+        st.plotly_chart(C.drawdown_fig(ec, cur), width="stretch", config={"displaylogo": False})
         dp = D.daily_pnl(P, TZ)
         dp["day"] = dp["day"].astype(str)
-        st.plotly_chart(C.pnl_bars_fig(dp, "day", "pnl", "Daily realised P&L", currency=cur), use_container_width=True, config={"displaylogo": False})
+        st.plotly_chart(C.pnl_bars_fig(dp, "day", "pnl", "Daily realised P&L", currency=cur), width="stretch", config={"displaylogo": False})
     with cB:
         # rolling returns by trade
         if not ec.empty:
@@ -372,10 +372,10 @@ with tabs[1]:
             fig = go.Figure(go.Scatter(x=roll["time"], y=roll["rolling"], mode="lines+markers", line=dict(color=C.SERIES[6], width=2),
                                        name=f"Rolling {w}-trade P&L", hovertemplate="%{x|%d %b %H:%M}<br>%{y:+.2f}<extra></extra>"))
             fig.add_hline(y=0, line=dict(color=C.GRID, width=1))
-            st.plotly_chart(C.base_layout(fig, height=220, title=f"Rolling {w}-trade realised P&L"), use_container_width=True, config={"displaylogo": False})
+            st.plotly_chart(C.base_layout(fig, height=220, title=f"Rolling {w}-trade realised P&L"), width="stretch", config={"displaylogo": False})
         bs = D.by_symbol(P)
         if not bs.empty:
-            st.plotly_chart(C.contribution_fig(bs, currency=cur), use_container_width=True, config={"displaylogo": False})
+            st.plotly_chart(C.contribution_fig(bs, currency=cur), width="stretch", config={"displaylogo": False})
 
     st.markdown("#### Benchmark comparison")
     b1, b2 = st.columns(2)
@@ -402,7 +402,7 @@ with tabs[1]:
                          "Strategy net %": g["pnl_usd"].sum() / g["stake_usd"].mean() * 100, "Trades": len(g)})
         drift = pd.DataFrame(rows)
         st.markdown("<div class='panel'><h4>Freqtrade: strategy vs holding the pair across the dry-run window</h4>", unsafe_allow_html=True)
-        st.dataframe(drift, hide_index=True, use_container_width=True,
+        st.dataframe(drift, hide_index=True, width="stretch",
                      column_config={"First entry": st.column_config.NumberColumn(format="%.6g"), "Last exit": st.column_config.NumberColumn(format="%.6g"),
                                     "Pair drift %": st.column_config.NumberColumn(format="%+.2f"), "Strategy net %": st.column_config.NumberColumn(format="%+.2f")})
         st.markdown("<div class='src'>Computed from fill prices in trades_full.csv only (no OHLC in the archive). 'Strategy net %' is net USDT divided by one 25 USDT stake. A 1.4-day window is far too short for any conclusion.</div></div>", unsafe_allow_html=True)
@@ -417,7 +417,7 @@ with tabs[1]:
         kpi("Freqtrade API Sharpe", num(X["ft_stats"]["profit"]["sharpe"], 1), "annualised from ~1.4 days: not meaningful", "warn")
     with r4:
         kpi("Freqtrade API Calmar / CAGR", f"{X['ft_stats']['profit']['calmar']:.0f} / {X['ft_stats']['profit']['cagr']:.0%}", "extrapolated: ignore until ≥ 50 trades", "warn")
-    st.plotly_chart(C.duration_scatter_fig(P), use_container_width=True, config={"displaylogo": False})
+    st.plotly_chart(C.duration_scatter_fig(P), width="stretch", config={"displaylogo": False})
 
 # =========================================================================== #
 # C. STRATEGY COMPARISON
@@ -431,7 +431,7 @@ with tabs[2]:
     tbl_show = tbl.copy()
     tbl_show["Avg hold"] = tbl_show["Avg hold"].map(D.fmt_td)
     tbl_show["Profit factor"] = tbl_show["Profit factor"].map(lambda v: num(v))
-    st.dataframe(tbl_show, hide_index=True, use_container_width=True,
+    st.dataframe(tbl_show, hide_index=True, width="stretch",
                  column_config={"Net P&L ($)": st.column_config.NumberColumn(format="%+.2f"), "Return on stake (%)": st.column_config.NumberColumn(format="%+.2f"),
                                 "Win rate (%)": st.column_config.NumberColumn(format="%.1f"), "Expectancy ($/trade)": st.column_config.NumberColumn(format="%+.3f"),
                                 "Max DD ($)": st.column_config.NumberColumn(format="%.2f"), "Fees ($)": st.column_config.NumberColumn(format="%.2f")})
@@ -440,12 +440,12 @@ with tabs[2]:
     cmp_tbl = tbl.copy()
     cmp_tbl["Profit factor"] = cmp_tbl["Profit factor"].replace([math.inf], float("nan"))
     cmp_tbl = cmp_tbl[cmp_tbl["System"].isin(systems)]
-    st.plotly_chart(C.strategy_compare_fig(cmp_tbl, metric), use_container_width=True, config={"displaylogo": False})
+    st.plotly_chart(C.strategy_compare_fig(cmp_tbl, metric), width="stretch", config={"displaylogo": False})
     c1, c2 = st.columns(2)
     with c1:
-        st.plotly_chart(C.exit_reason_fig(T), use_container_width=True, config={"displaylogo": False})
+        st.plotly_chart(C.exit_reason_fig(T), width="stretch", config={"displaylogo": False})
     with c2:
-        st.plotly_chart(C.hour_heat_fig(T, TZ), use_container_width=True, config={"displaylogo": False})
+        st.plotly_chart(C.hour_heat_fig(T, TZ), width="stretch", config={"displaylogo": False})
     st.markdown("#### Paper / live / backtest status")
     s1, s2, s3, s4 = st.columns(4)
     for col, (sysname, lines) in zip([s1, s2, s3, s4], [
@@ -489,7 +489,7 @@ with tabs[3]:
         "Hold": E["duration"].map(D.fmt_td), "Exit reason": E["exit_reason"], "Outcome": E["outcome"],
     })
     st.caption(f"{len(view)} of {len(ALL)} trade records. Fees: Freqtrade reports them; the Robinhood API returns none (crypto spread is embedded in fill prices).")
-    sel = st.dataframe(view, hide_index=True, use_container_width=True, height=380, on_select="rerun", selection_mode="single-row",
+    sel = st.dataframe(view, hide_index=True, width="stretch", height=380, on_select="rerun", selection_mode="single-row",
                        column_config={"Entry px": st.column_config.NumberColumn(format="%.8g"), "Exit px": st.column_config.NumberColumn(format="%.8g"),
                                       "Qty": st.column_config.NumberColumn(format="%.6g"), "Stake": st.column_config.NumberColumn(format="%.2f"),
                                       "Net P&L": st.column_config.NumberColumn(format="%+.3f"), "P&L %": st.column_config.NumberColumn(format="%+.2f"),
@@ -522,7 +522,7 @@ with tabs[3]:
 </table></div>""", unsafe_allow_html=True)
         with ccol:
             candles = D.load_candles(r["symbol"])
-            st.plotly_chart(C.fill_timeline_fig(ALL[ALL["system"] == r["system"]], r["symbol"], picked, candles), use_container_width=True, config={"displaylogo": False})
+            st.plotly_chart(C.fill_timeline_fig(ALL[ALL["system"] == r["system"]], r["symbol"], picked, candles), width="stretch", config={"displaylogo": False})
             if candles is None:
                 st.caption("No OHLC data was in the archive, so the dotted line joins actual fill prices. Run `python fetch_candles.py` (Binance public klines, read-only) to draw real 5m candlesticks for the Freqtrade pairs.")
 
@@ -541,9 +541,9 @@ with tabs[4]:
         st.warning(f"Approaching limit: {', '.join(f'{s} {w:.0%}' for s, w in zip(near['symbol'], near['weight']))} (above 15%).", icon="⚠️")
     c1, c2 = st.columns(2)
     with c1:
-        st.plotly_chart(C.allocation_fig(pos, acct["cash"], limit), use_container_width=True, config={"displaylogo": False})
+        st.plotly_chart(C.allocation_fig(pos, acct["cash"], limit), width="stretch", config={"displaylogo": False})
     with c2:
-        st.plotly_chart(C.concentration_fig(pos, limit), use_container_width=True, config={"displaylogo": False})
+        st.plotly_chart(C.concentration_fig(pos, limit), width="stretch", config={"displaylogo": False})
 
     st.markdown("#### Exposure, position sizes and stop distance")
     k = st.columns(5)
@@ -572,14 +572,14 @@ with tabs[4]:
     ])
     def _style(v):
         return {"BREACHED": "color:#ff8a8a;font-weight:700", "MISSING": "color:#f0b84a;font-weight:600", "UNDEFINED": "color:#f0b84a", "OK": "color:#4fd0a0"}.get(v, "")
-    st.dataframe(rb.style.map(_style, subset=["Status"]), hide_index=True, use_container_width=True)
+    st.dataframe(rb.style.map(_style, subset=["Status"]), hide_index=True, width="stretch")
 
     c1, c2 = st.columns(2)
     with c1:
-        st.plotly_chart(C.loss_hist_fig(T), use_container_width=True, config={"displaylogo": False})
+        st.plotly_chart(C.loss_hist_fig(T), width="stretch", config={"displaylogo": False})
     with c2:
         ec_rh = D.equity_curve(ALL[ALL["system"] == "Robinhood"])
-        st.plotly_chart(C.drawdown_fig(ec_rh, "$").update_layout(title_text="Robinhood realised drawdown (live, FIFO)"), use_container_width=True, config={"displaylogo": False})
+        st.plotly_chart(C.drawdown_fig(ec_rh, "$").update_layout(title_text="Robinhood realised drawdown (live, FIFO)"), width="stretch", config={"displaylogo": False})
     st.markdown("#### Correlation between holdings")
     st.info("Not available. The archive has no price history for ETH, BTC, NVDA, QQQ, AMD or FLOKI, so a correlation matrix cannot be computed without estimating. Add daily closes to data/ (or run fetch_candles.py for the Binance pairs) and this panel will populate.", icon="ℹ️")
 
@@ -614,8 +614,9 @@ with tabs[5]:
     rec = X["recon"]
     npass, nfail = int((rec["Result"] == "PASS").sum()), int((rec["Result"] == "FAIL").sum())
     st.caption(f"{npass} checks pass, {nfail} fail, {int((rec['Result']=='INFO').sum())} informational, {int((rec['Result']=='N/A').sum())} not available. Each check compares two independent records in the archive (trade list vs API profit snapshot, FIFO vs the Oct 27 dashboard).")
-    st.dataframe(rec.style.map(lambda v: {"PASS": "color:#4fd0a0;font-weight:600", "FAIL": "color:#ff8a8a;font-weight:700", "INFO": "color:#9a9c99", "N/A": "color:#9a9c99"}.get(v, ""), subset=["Result"]),
-                 hide_index=True, use_container_width=True, height=min(640, 38 * len(rec) + 40))
+    # Expected/Actual mix numbers and text; cast to str so Arrow does not have to guess a column type.
+    st.dataframe(rec.astype({"Expected": str, "Actual": str}).style.map(lambda v: {"PASS": "color:#4fd0a0;font-weight:600", "FAIL": "color:#ff8a8a;font-weight:700", "INFO": "color:#9a9c99", "N/A": "color:#9a9c99"}.get(v, ""), subset=["Result"]),
+                 hide_index=True, width="stretch", height=min(640, 38 * len(rec) + 40))
 
     c1, c2 = st.columns(2)
     with c1:
@@ -623,7 +624,7 @@ with tabs[5]:
         canc = X["orders"][X["orders"]["state"] != "filled"]
         cv = pd.DataFrame({"Time": canc["created"].map(lambda t: fmt_time(t, TZ)), "Symbol": canc["symbol"], "Side": canc["side"], "Type": canc["order_type"],
                            "Qty": canc["qty_ordered"], "Limit/stop": canc["limit_price"].fillna(canc["stop_price"]), "State": canc["state"]})
-        st.dataframe(cv, hide_index=True, use_container_width=True, column_config={"Limit/stop": st.column_config.NumberColumn(format="%.8g"), "Qty": st.column_config.NumberColumn(format="%.6g")})
+        st.dataframe(cv, hide_index=True, width="stretch", column_config={"Limit/stop": st.column_config.NumberColumn(format="%.8g"), "Qty": st.column_config.NumberColumn(format="%.6g")})
         st.caption("Freqtrade entry timeouts (10 min limit orders) were observed on Oct 29 but are not in the exported trade list, so their count is Not available. Log errors: no log files were in the archive.")
     with c2:
         st.markdown("#### Strategy execution timing (Freqtrade)")
@@ -651,7 +652,7 @@ with tabs[5]:
         ("2026-10-30", "Alpaca", "sma_cross.py buy branch truncated in archive", "Pull the live file from the VPS to audit", "open"),
         ("ongoing", "All", "No kill switch, daily loss cap or alert routine implemented", "Define unified rules (see roadmap)", "open"),
     ], columns=["Date", "System", "Incident", "Action", "Status"])
-    st.dataframe(inc.style.map(lambda v: {"open": "color:#f0b84a;font-weight:600", "closed": "color:#4fd0a0"}.get(v, ""), subset=["Status"]), hide_index=True, use_container_width=True)
+    st.dataframe(inc.style.map(lambda v: {"open": "color:#f0b84a;font-weight:600", "closed": "color:#4fd0a0"}.get(v, ""), subset=["Status"]), hide_index=True, width="stretch")
 
 # =========================================================================== #
 # G. SIGNAL EXPLANATION
