@@ -5,7 +5,8 @@ Run:   streamlit run app.py
 Docker: docker compose up
 
 READ ONLY. This app opens no broker, exchange or bot connection and has no
-order controls. It reads the files in ./data only.
+order controls. It reads the files in ./data only, or with DASH_MODE=live the read-only
+mounted Freqtrade sqlite and Lumibot ledger (see data_live.py).
 """
 from __future__ import annotations
 
@@ -17,6 +18,9 @@ import streamlit as st
 
 import charts as C
 import data as D
+
+if D.LIVE:
+    import data_live as DL
 
 st.set_page_config(page_title="Trading Command Center", page_icon="📊", layout="wide", initial_sidebar_state="expanded")
 
@@ -97,8 +101,16 @@ def badge(text, kind):
 
 
 def mode_badge(system):
+    alpaca = "PAPER · 0 trades"
+    if D.LIVE:
+        al_pos = X["al_live"][0]
+        alpaca = f"PAPER · {len(al_pos)} open" if al_pos is not None else "PAPER · no trades yet"
     return {"Robinhood": badge("LIVE · real money", "live"), "Freqtrade": badge("DRY-RUN · simulated", "dry"),
-            "Alpaca": badge("PAPER · 0 trades", "paper"), "CRT skill": badge("ANALYSIS ONLY", "na")}[system]
+            "Alpaca": badge(alpaca, "paper"), "CRT skill": badge("ANALYSIS ONLY", "na")}[system]
+
+
+def LUMIBOT_STATE_NOTE(al_sum):
+    return f"last written {fmt_time(al_sum['state_mtime'], D.UTC)} UTC" if al_sum["state_mtime"] is not None else "file not found"
 
 
 def fmt_time(ts, tz):
@@ -110,10 +122,12 @@ def fmt_time(ts, tz):
 # --------------------------------------------------------------------------- #
 # Data (cached)
 # --------------------------------------------------------------------------- #
-@st.cache_data(show_spinner=False)
+@st.cache_data(show_spinner=False, ttl=60 if D.LIVE else None)
 def load_everything():
     trades = D.build_all_trades()
+    live = {"al_live": D.alpaca_sleeve(), "fresh": D.live_freshness()} if D.LIVE else {}
     return {
+        **live,
         "trades": trades,
         "orders": D.load_robinhood_orders(),
         "ft_stats": D.load_freqtrade_stats(),
@@ -167,8 +181,10 @@ ref_time = ALL["exit_time"].max() if pd.notna(ALL["exit_time"].max()) else pd.Ti
 
 def apply_filters(df: pd.DataFrame) -> pd.DataFrame:
     f = df[df["system"].isin(systems) & df["strategy"].isin(strategies)]
-    key = f["exit_time"].fillna(f["entry_time"]).dt.tz_convert(TZ).dt.date
-    return f[(key >= d0) & (key <= d1)]
+    stamp = f["exit_time"].fillna(f["entry_time"])
+    key = stamp.dt.tz_convert(TZ).dt.date
+    # rows with no time at all (Alpaca ledger positions) are not dropped by the date filter
+    return f[stamp.isna() | ((key >= d0) & (key <= d1))]
 
 
 T = apply_filters(ALL)
@@ -230,13 +246,19 @@ with tabs[0]:
     left, right = st.columns([1.15, 1])
     with left:
         st.markdown("#### Active strategies")
+        ft_snap = " (Oct 30 snapshot)" if D.LIVE and "strategy" in X["ft_cfg"].get("_snapshot_keys", []) else ""
+        al_desc = f"{X['al_cfg']['strategy']} {X['al_cfg']['params']['fast']}/{X['al_cfg']['params']['slow']} daily · {', '.join(X['al_cfg']['symbols'])}"
+        al_meta = "backtest +2% vs SPY +123% · no paper trades"
+        if D.LIVE:
+            al_pos, al_sum = X["al_live"]
+            al_desc = f"{DL.ALPACA_STRATEGY} · SMA{al_sum['params'].get('sma', '?')} · {', '.join(al_sum['symbols'])} · ${al_sum['capital']:,.0f} sleeve"
+            al_meta = al_sum["status"]
         rows = [
             ("Robinhood", "Agent stock rebalance + crypto core + manual meme sleeve (inferred)", mode_badge("Robinhood"),
              f"{len(rh_all)} lots · last fill {fmt_time(X['orders']['last_update'].max(), TZ)}"),
-            ("Freqtrade", f"{X['ft_cfg']['strategy']} · {X['ft_cfg']['timeframe']} · stake {X['ft_cfg']['stake_amount']} USDT · max {int(X['ft_cfg']['max_open_trades'])} open",
-             mode_badge("Freqtrade"), f"{len(ft_all)} closed · bot state {X['ft_cfg']['state']} (snapshot)"),
-            ("Alpaca", f"{X['al_cfg']['strategy']} {X['al_cfg']['params']['fast']}/{X['al_cfg']['params']['slow']} daily · {', '.join(X['al_cfg']['symbols'])}",
-             mode_badge("Alpaca"), "backtest +2% vs SPY +123% · no paper trades"),
+            ("Freqtrade", f"{X['ft_cfg']['strategy']} · {X['ft_cfg']['timeframe']}{ft_snap} · stake {X['ft_cfg']['stake_amount']} USDT · max {int(X['ft_cfg']['max_open_trades'])} open",
+             mode_badge("Freqtrade"), f"{m_ft.closed} closed · bot state {X['ft_cfg']['state']} (snapshot)"),
+            ("Alpaca", al_desc, mode_badge("Alpaca"), al_meta),
             ("CRT skill", "crt-ict-trading-analyzer (discretionary stock check)", mode_badge("CRT skill"), "no trades, no signal log"),
         ]
         html = "<div class='panel'><table style='width:100%;font-size:13px;border-collapse:collapse'>"
@@ -251,14 +273,17 @@ with tabs[0]:
         ft_last = D._kwt(X["ft_stats"]["profit"]["latest_trade_date"]).tz_localize(None).tz_localize(D.UTC)
         status_rows = [
             ("Robinhood MCP connector", "Read-only pull Oct 30 2026", fmt_time(rh_last, TZ), badge("snapshot", "warn")),
-            ("Freqtrade meme-sleeve", f"state={X['ft_cfg']['state']}, dry_run={X['ft_cfg']['dry_run']}", fmt_time(ft_last, TZ), badge("snapshot", "warn")),
-            ("Alpaca lumibot", "paper=true, email verification pending (Oct 30)", NA, badge("no trades", "na")),
+            ("Freqtrade meme-sleeve", f"state={X['ft_cfg']['state']}, dry_run={X['ft_cfg']['dry_run']}", fmt_time(ft_last, TZ), badge("live sqlite" if D.LIVE else "snapshot", "ok" if D.LIVE else "warn")),
+            ("Alpaca lumibot", (f"paper={X['al_live'][1]['paper']}, {X['al_live'][1]['status']}" if D.LIVE else "paper=true, email verification pending (Oct 30)"),
+             fmt_time(X["al_live"][1]["state_mtime"], TZ) if D.LIVE else NA, badge("live ledger" if D.LIVE else "no trades", "ok" if D.LIVE else "na")),
             ("CRT skill", "skill file present", NA, badge("n/a", "na")),
         ]
         html = "<div class='panel'><table style='width:100%;font-size:13px;border-collapse:collapse'><tr style='color:#9a9c99'><td>Component</td><td>State</td><td>Last record</td><td></td></tr>"
         for a, b, c_, d_ in status_rows:
             html += f"<tr style='border-top:1px solid #2a2e38'><td style='padding:7px 4px;font-weight:600'>{a}</td><td style='padding:7px 4px'>{b}</td><td style='padding:7px 4px' class='rule'>{c_}</td><td style='text-align:right'>{d_}</td></tr>"
-        html += "</table><div class='src' style='margin-top:8px'>This dashboard reads exported files, so these are the last records in the archive, not a live heartbeat. Wire the loaders in data.py to the Freqtrade REST API (read-only user) and the Robinhood connector to make them live.</div></div>"
+        foot = ("Freqtrade and Alpaca are read live from the mounted sqlite and ledger (refreshed every 60 s); Robinhood is still the archived pull. Times are last records, not a heartbeat."
+                if D.LIVE else "This dashboard reads exported files, so these are the last records in the archive, not a live heartbeat. Wire the loaders in data.py to the Freqtrade REST API (read-only user) and the Robinhood connector to make them live.")
+        html += f"</table><div class='src' style='margin-top:8px'>{foot}</div></div>"
         st.markdown(html, unsafe_allow_html=True)
 
     with right:
@@ -288,6 +313,28 @@ with tabs[0]:
             kpi("Win rate", pct(m_ft.win_rate, signed=False, digits=1), f"max {m_ft.max_consec_losses} losses in a row")
         with c3:
             kpi("Max drawdown", money(m_ft.max_drawdown, currency="USDT"), f"avg hold {D.fmt_td(m_ft.avg_duration)}", "warn")
+        if D.LIVE:
+            v3 = ft_all[ft_all["entry_time"] >= DL.V3_START]
+            st.caption(f"MemeSleeveV3 (4h, dry-run) since {DL.V3_START:%Y-%m-%d %H:%M} UTC: {DL.V3_NOTE}. "
+                       f"{len(v3)} V3 trade(s) so far; V1 trades opened before the switch stay labelled V1.")
+            st.markdown("#### Alpaca TrendFilter sleeve (paper)")
+            al_pos, al_sum = X["al_live"]
+            if al_pos is None:
+                st.info(f"{al_sum['status'].capitalize()}. Ledger {LUMIBOT_STATE_NOTE(al_sum)}.", icon="ℹ️")
+            else:
+                c1, c2, c3 = st.columns(3)
+                with c1:
+                    kpi("Invested at cost", money(al_sum["invested"]), f"of {money(al_sum['capital'], digits=0)} sleeve")
+                with c2:
+                    kpi("Sleeve cash", money(al_sum["cash"]), "capital + realised − cost")
+                with c3:
+                    kpi("Realised P&L", money(al_sum["realized"], signed=True), "from the ledger", tone_of(al_sum["realized"]))
+                show = al_pos.rename(columns={"symbol": "Symbol", "qty": "Qty", "cost_usd": "Cost $", "avg_cost": "Avg cost", "weight_at_cost": "Weight at cost"})
+                show["Weight at cost"] = (show["Weight at cost"] * 100).round(1)
+                st.dataframe(show, hide_index=True, use_container_width=True,
+                             column_config={"Qty": st.column_config.NumberColumn(format="%.3f"), "Cost $": st.column_config.NumberColumn(format="%.2f"),
+                                            "Avg cost": st.column_config.NumberColumn(format="%.2f")})
+                st.caption(f"Market value and unrealised P&L: {NA} (the dashboard has no price feed or broker access). Ledger {LUMIBOT_STATE_NOTE(al_sum)}.")
 
 # =========================================================================== #
 # B. PERFORMANCE ANALYTICS
@@ -377,6 +424,9 @@ with tabs[1]:
 # =========================================================================== #
 with tabs[2]:
     st.markdown("#### Strategy comparison <span class='src'>metrics recomputed from the trade records in the current filter; Alpaca and CRT rows come from reported figures or have no trades</span>", unsafe_allow_html=True)
+    if D.LIVE:
+        st.caption(f"MemeSleeveV3 (4h, dry-run): {DL.V3_NOTE}. Its row only counts trades it opened after "
+                   f"{DL.V3_START:%Y-%m-%d %H:%M} UTC; V1 trades it closed stay in the V1 row.")
     tbl = D.strategy_table(T)
     tbl_show = tbl.copy()
     tbl_show["Avg hold"] = tbl_show["Avg hold"].map(D.fmt_td)
@@ -544,11 +594,17 @@ with tabs[5]:
     def age(ts):
         return D.fmt_td(now - pd.Timestamp(ts).tz_convert(D.UTC))
     h = st.columns(4)
+    if D.LIVE:
+        fresh_card = ("Data freshness (live)", badge("read-only mounts", "ok"),
+                      [f"{label}: {fmt_time(ts, D.UTC)} UTC ({age(ts)} ago)" if ts is not None else f"{label}: {NA}" for label, ts in X["fresh"]]
+                      + [f"Still from the Oct 30 snapshot: {', '.join(DL.snapshot_note(X['ft_cfg'], X['ft_stats']))}"])
+    else:
+        fresh_card = ("Data freshness (this app)", badge("files", "na"), [f"{k}: {v.strftime('%Y-%m-%d %H:%M')} UTC" for k, v in list(X["mtimes"].items())[:4]])
     cards = [
         ("Robinhood MCP connector", badge("read-only pull", "ok"), [f"Last order update: {fmt_time(rh_last, TZ)}", f"Data age: {age(rh_last)}", "Orders: 23 (16 crypto filled, 2 canceled, 5 stock)", "Fees / reasons: not returned by API"]),
         ("Freqtrade meme-sleeve", badge(f"state {X['ft_cfg']['state']} · dry_run", "dry"), [f"Last trade close: {fmt_time(ft_last, TZ)}", f"Data age: {age(ft_last)}", f"Version {X['ft_cfg']['version']} · {X['ft_cfg']['exchange']} {X['ft_cfg']['trading_mode']}", "API: 127.0.0.1 + Tailscale only (fixed Oct 29)"]),
         ("Alpaca lumibot", badge("paper · idle", "paper"), ["No fills, no orders yet", "Email verification pending (Oct 30)", "Telegram alerts: not set up", "Strategy buy branch truncated in archive"]),
-        ("Data freshness (this app)", badge("files", "na"), [f"{k}: {v.strftime('%Y-%m-%d %H:%M')} UTC" for k, v in list(X["mtimes"].items())[:4]]),
+        fresh_card,
     ]
     for col, (title, b, lines) in zip(h, cards):
         with col:
@@ -557,8 +613,8 @@ with tabs[5]:
     st.markdown("#### Order reconciliation")
     rec = X["recon"]
     npass, nfail = int((rec["Result"] == "PASS").sum()), int((rec["Result"] == "FAIL").sum())
-    st.caption(f"{npass} checks pass, {nfail} fail, {int((rec['Result']=='INFO').sum())} informational. Each check compares two independent records in the archive (trade list vs API profit snapshot, FIFO vs the Oct 27 dashboard).")
-    st.dataframe(rec.style.map(lambda v: {"PASS": "color:#4fd0a0;font-weight:600", "FAIL": "color:#ff8a8a;font-weight:700", "INFO": "color:#9a9c99"}.get(v, ""), subset=["Result"]),
+    st.caption(f"{npass} checks pass, {nfail} fail, {int((rec['Result']=='INFO').sum())} informational, {int((rec['Result']=='N/A').sum())} not available. Each check compares two independent records in the archive (trade list vs API profit snapshot, FIFO vs the Oct 27 dashboard).")
+    st.dataframe(rec.style.map(lambda v: {"PASS": "color:#4fd0a0;font-weight:600", "FAIL": "color:#ff8a8a;font-weight:700", "INFO": "color:#9a9c99", "N/A": "color:#9a9c99"}.get(v, ""), subset=["Result"]),
                  hide_index=True, use_container_width=True, height=min(640, 38 * len(rec) + 40))
 
     c1, c2 = st.columns(2)
@@ -621,15 +677,22 @@ with tabs[6]:
             risk_checks = [
                 (f"max_open_trades = {int(cfg['max_open_trades'])}", "slot available at entry"),
                 (f"stake_amount = {cfg['stake_amount']} USDT", f"actual stake {r['stake_usd']:.4f} USDT"),
-                (f"stoploss = {cfg['stoploss']:.0%} (market order, not on exchange)", f"stop level {r['stop_price']:.8f}"),
+                (f"stoploss = {r['stop_price'] / r['entry_price'] - 1:.0%} (market order, not on exchange)", f"stop level {r['stop_price']:.8f}"),
                 ("entry order: limit, 10-minute timeout, order-book top", "fill is simulated in dry-run"),
             ]
-            exit_text = r["exit_reason"]
-            if r["exit_reason_code"] == "roi":
+            exit_text = r["exit_reason"] or "still open"
+            is_v1 = r["strategy"].startswith("MemeSleeveV1")
+            if r["status"] == "open":
+                decision = f"HOLD: trade still open, stop level {r['stop_price']:.8f}."
+            elif not is_v1:
+                decision = f"SELL: {r['exit_reason']} after {D.fmt_td(r['duration'])}. Result {r['pnl_pct']:+.2f}% after fees {r['fees_usd']:.4f} USDT."
+            elif r["exit_reason_code"] == "roi":
                 decision = f"SELL: held {D.fmt_td(r['duration'])}, profit {r['pnl_pct']:+.2f}% reached the ROI tier in force, so Freqtrade closed with a limit order."
             else:
                 decision = f"SELL: strategy exit signal fired after {D.fmt_td(r['duration'])} (EMA9 crossed under EMA21 or RSI > 80). Result {r['pnl_pct']:+.2f}% after fees {r['fees_usd']:.4f} USDT."
-            html = f"<div class='panel'><h4>Rule-based explanation · MemeSleeveV1</h4><b>BUY {r['symbol']}/USDT at {r['entry_price']:.8f}</b> on {fmt_time(r['entry_time'], TZ)}<br><span class='src'>All four conditions below were true on the signal candle (the bot cannot enter otherwise). Their numeric values are Not available in the archive.</span><ul class='rule' style='margin-top:8px'>"
+            if not is_v1:
+                entry_rules = [(r["entry_reason"], f"rules in {r['strategy'].split()[0]}.py; this panel only spells out V1's")]
+            html = f"<div class='panel'><h4>Rule-based explanation · {r['strategy'].split()[0]}</h4><b>BUY {r['symbol']}/USDT at {r['entry_price']:.8f}</b> on {fmt_time(r['entry_time'], TZ)}<br><span class='src'>All four conditions below were true on the signal candle (the bot cannot enter otherwise). Their numeric values are Not available in the archive.</span><ul class='rule' style='margin-top:8px'>"
             html += "".join(f"<li>{a} <span style='color:#9a9c99'>· {b}</span></li>" for a, b in entry_rules)
             html += "</ul><b>Risk checks at entry</b><ul class='rule'>" + "".join(f"<li>{a} <span style='color:#9a9c99'>· {b}</span></li>" for a, b in risk_checks) + "</ul>"
             html += f"<b>Exit rule</b><div class='rule' style='margin:4px 0 8px'>{exit_text}</div><b>Final decision</b><div style='margin-top:4px'>{decision}</div></div>"

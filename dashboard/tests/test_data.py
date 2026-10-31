@@ -40,7 +40,7 @@ def test_open_lots_match_snapshot():
 
 def test_no_live_trading_surface():
     """The app must not import any broker / exchange client."""
-    for fname in ("app.py", "data.py", "charts.py"):
+    for fname in ("app.py", "data.py", "data_live.py", "charts.py"):
         src = open(os.path.join(os.path.dirname(__file__), "..", fname)).read()
         for forbidden in ("import alpaca", "from alpaca", "import ccxt", "import robin_stocks", "from lumibot", "import lumibot",
                           "forceenter", "forceexit", "submit_order", "create_order", "cancel_order"):

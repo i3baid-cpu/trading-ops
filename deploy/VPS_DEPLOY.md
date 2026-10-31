@@ -13,17 +13,13 @@ git clone git@github.com:i3baid-cpu/trading-ops.git ~/trading-ops
 ```
 
 ## Dashboard
-The compose file expects the live files listed in deploy/docker-compose.dashboard.yml. Two of them are owned by root and must be readable by the container:
-```bash
-# as root
-chmod 644 /root/lumibot/config.json
-touch /root/lumibot/strategies/trend_filter_state.json
-```
-(The sqlite file and backtest_config.json are already readable.) Then, as root from ~claude-ops/trading-ops:
-```bash
-docker compose -f deploy/docker-compose.dashboard.yml up -d --build
-docker logs --tail 20 trading-dashboard
-```
+The compose file mounts /root/freqtrade/user_data and /root/lumibot/strategies as read only directories, plus
+/root/lumibot/config.json. The container runs as root, so no chmod or touch is needed; a missing or empty
+trend_filter_state.json shows "no paper trades yet". The exact build and start commands for this VPS are in
+results/dashboard_deploy_commands.md.
+
+The Freqtrade API reconciliation check stays "Not available" unless FT_API_URL, FT_API_USERNAME and
+FT_API_PASSWORD are given to the container; credentials never go into this repository.
 Open http://100.99.81.45:8501 from a Tailscale device.
 
 ## Updating

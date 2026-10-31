@@ -14,6 +14,10 @@ Source files (all copied unchanged from the audit ZIP, see data/):
   alpaca_config.json       Lumibot runner config (paper)
   alpaca_backtest.json     headline backtest figures reported in HISTORY.md
   robinhood_snapshot.json  positions/cash from the Oct 27 dashboard source
+
+With DASH_MODE=live the Freqtrade and Alpaca loaders read the live sources instead
+(data_live.py, docs/LIVE_LOADER_SPEC.md). Robinhood and the archive cross-checks
+stay file based. Unset, everything reads data/ as above (the tests rely on it).
 """
 from __future__ import annotations
 
@@ -32,6 +36,7 @@ KWT = ZoneInfo("Asia/Kuwait")
 NYC = ZoneInfo("America/New_York")
 UTC = timezone.utc
 NA = "Not available"
+LIVE = os.environ.get("DASH_MODE", "").lower() == "live"
 
 # Strategy labels for Robinhood are INFERRED from the order pattern (the API
 # returns no strategy or reason field). They are clearly marked as inferred in
@@ -82,10 +87,16 @@ def load_freqtrade_trades() -> pd.DataFrame:
 
 
 def load_freqtrade_stats() -> dict:
+    if LIVE:
+        import data_live
+        return data_live.load_freqtrade_stats()
     return _read_json("freqtrade_stats.json")
 
 
 def load_freqtrade_config() -> dict:
+    if LIVE:
+        import data_live
+        return data_live.load_freqtrade_config()
     return _read_json("freqtrade_config.json")
 
 
@@ -220,8 +231,15 @@ def _roi_tier(minutes: float, roi: dict) -> str:
 
 
 def build_freqtrade_trades() -> pd.DataFrame:
+    if LIVE:
+        import data_live
+        return data_live.build_freqtrade_trades()
+    return _build_freqtrade_trades_file()
+
+
+def _build_freqtrade_trades_file() -> pd.DataFrame:
     ft = load_freqtrade_trades()
-    cfg = load_freqtrade_config()
+    cfg = _read_json("freqtrade_config.json")
     roi = cfg["minimal_roi"]
     df = pd.DataFrame({
         "trade_id": ["FT-%d" % i for i in ft["trade_id"]],
@@ -259,7 +277,13 @@ def build_all_trades() -> pd.DataFrame:
     rh["exit_reason_code"] = np.where(rh["exit_reason"].str.startswith("Protective"), "stop_loss",
                                       np.where(rh["status"] == "open", "", "manual_exit"))
     cols.append("exit_reason_code")
-    allt = pd.concat([rh[cols], ft[cols]], ignore_index=True)
+    parts = [rh[cols], ft[cols]]
+    if LIVE:
+        import data_live
+        al = data_live.build_alpaca_trades()
+        if len(al):
+            parts.append(al[cols])
+    allt = pd.concat(parts, ignore_index=True)
     allt["entry_time"] = pd.to_datetime(allt["entry_time"], utc=True).dt.tz_convert(KWT)
     allt["exit_time"] = pd.to_datetime(allt["exit_time"], utc=True).dt.tz_convert(KWT)
     return allt
@@ -424,10 +448,12 @@ def positions_table() -> tuple[pd.DataFrame, dict]:
 # Reconciliation checks (real cross-checks between files in the archive)
 # --------------------------------------------------------------------------- #
 def reconciliation() -> pd.DataFrame:
+    # Archive checks always compare the Oct 30 exports with each other; live checks are appended below.
     checks = []
     ft = load_freqtrade_trades()
-    st = load_freqtrade_stats()["profit"]
-    perf = {p["pair"]: p for p in load_freqtrade_stats()["performance"]}
+    stats = _read_json("freqtrade_stats.json")
+    st = stats["profit"]
+    perf = {p["pair"]: p for p in stats["performance"]}
 
     def add(system, check, expected, actual, tol=0.0):
         try:
@@ -448,7 +474,7 @@ def reconciliation() -> pd.DataFrame:
     for pair, p in perf.items():
         add("Freqtrade", f"Per-pair profit {pair}: trades vs API performance", round(p["profit_abs"], 4),
             round(ft.loc[ft["pair"] == pair, "profit_abs_usdt"].sum(), 4), tol=0.001)
-    ec = equity_curve(build_freqtrade_trades())
+    ec = equity_curve(_build_freqtrade_trades_file())
     add("Freqtrade", "Max drawdown USDT: recomputed from trade sequence vs API", round(st["max_drawdown_abs"], 3),
         round(-ec["drawdown"].min(), 3), tol=0.01)
     add("Freqtrade", "Trade IDs missing from sequence (6, 9 lost or never opened)", "ids 1-23 minus 6, 9",
@@ -470,7 +496,22 @@ def reconciliation() -> pd.DataFrame:
     add("Robinhood", "ETH Sep 18 partial sale: dashboard shows 'Not available'; FIFO against the Aug 29 lot gives",
         "Not available (dashboard)", f"+{float(pre[pre['symbol'] == 'ETH']['pnl_usd'].sum()):.2f} (FIFO, Aug 29 lot only)")
     checks[-1]["Result"] = "INFO"
+    if LIVE:
+        import data_live
+        checks.extend(data_live.reconciliation_rows())
     return pd.DataFrame(checks)
+
+
+def alpaca_sleeve():
+    """Live mode only: (positions or None, summary) for the Alpaca paper sleeve."""
+    import data_live
+    return data_live.alpaca_sleeve()
+
+
+def live_freshness():
+    """Live mode only: (label, UTC time) rows for the System Health freshness card."""
+    import data_live
+    return data_live.freshness()
 
 
 # --------------------------------------------------------------------------- #
