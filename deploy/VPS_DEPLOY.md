@@ -30,3 +30,12 @@ docker compose -f deploy/docker-compose.dashboard.yml up -d --build
 
 ## Strategies and configs
 Copy from fixes/ to the live folders as described in fixes/DEPLOY.md. The live secret files never come back into the repository.
+
+## Automatic dashboard deploys (optional, recommended)
+`deploy/dashboard-autodeploy.sh` pulls main every 15 minutes and rebuilds only the dashboard container when
+dashboard files changed. It refuses non fast-forward history and never touches the bots. Install once as root:
+```bash
+install -m 750 /root/trading-ops/deploy/dashboard-autodeploy.sh /usr/local/sbin/dashboard-autodeploy
+( crontab -l 2>/dev/null; echo "*/15 * * * * /usr/local/sbin/dashboard-autodeploy >> /var/log/dashboard-autodeploy.log 2>&1" ) | crontab -
+/usr/local/sbin/dashboard-autodeploy && tail -3 /var/log/dashboard-autodeploy.log
+```
