@@ -30,12 +30,38 @@ class TrendFilter(Strategy):
         self.reconciled = False
         self.last_summary_day = None
         # Sleeve ledger: per-symbol qty and cost basis from our own fills, plus realized P&L.
-        self.book = {"realized": 0.0, "pos": {}}
-        if not self.is_backtesting and os.path.exists(STATE_FILE):
+        self.book, problem = self._load_book()
+        if problem:
+            self.log_message(f"WARNING: {problem}; starting with no state, the first trading iteration "
+                             f"reconciles the ledger from broker positions", color="red")
+            self._notify(f"TrendFilter started. WARNING: {problem}; ledger will reconcile from broker positions")
+        else:
+            self._notify("TrendFilter started")
+
+    def _load_book(self):
+        # An empty, missing or invalid state file is treated as no state: start from an empty ledger and let
+        # _reconcile() seed it from broker positions, as on a fresh start. Returns (book, problem or None).
+        empty = {"realized": 0.0, "pos": {}}
+        if self.is_backtesting:
+            return empty, None
+        if not os.path.exists(STATE_FILE):
+            return empty, f"{STATE_FILE} missing"
+        try:
+            if os.path.getsize(STATE_FILE) == 0:
+                raise ValueError("file is empty")
             with open(STATE_FILE) as f:
-                self.book = json.load(f)
-            self.log_message(f"Loaded sleeve state from {STATE_FILE}: {self.book}")
-        self._notify("TrendFilter started")
+                raw = json.load(f)
+            pos = {sym: {"qty": float(p["qty"]), "cost": float(p["cost"])} for sym, p in raw["pos"].items()}
+            book = {"realized": float(raw["realized"]), "pos": pos}
+        except (OSError, ValueError, TypeError, KeyError, AttributeError) as e:
+            # Keep the bad file for inspection; _reconcile() writes a fresh one.
+            try:
+                os.replace(STATE_FILE, STATE_FILE + ".invalid")
+            except OSError:
+                pass
+            return empty, f"{STATE_FILE} invalid ({type(e).__name__}: {e}), kept as {STATE_FILE}.invalid"
+        self.log_message(f"Loaded sleeve state from {STATE_FILE}: {book}")
+        return book, None
 
     def _notify(self, text):
         if self.is_backtesting:
@@ -106,6 +132,8 @@ class TrendFilter(Strategy):
                 self.log_message(f"{sym}: ledger qty {p['qty']} != broker qty {held}; reseeding at avg {avg:.2f}")
                 p["qty"], p["cost"] = held, held * avg
         self._save_book()
+        self.log_message("Reconciled ledger with broker: " +
+                         ", ".join(f"{s} qty {self.book['pos'][s]['qty']}" for s in self.cfg["symbols"]))
 
     def _log_pnl(self):
         unreal = 0.0
