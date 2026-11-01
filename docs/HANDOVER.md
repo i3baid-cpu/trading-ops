@@ -17,7 +17,7 @@ Read this first in every Claude Code session on the VPS. It is the memory of the
 |---|---|---|---|
 | freqtrade | MemeSleeveV3, 4h, DOGE PEPE SHIB FLOKI /USDT, Binance spot, stake 25 USDT, max 2 | DRY RUN since 2026-10-30 21:26 UTC; Telegram alerts on | `sudo ft-swap-strategy <Name>` (claude-ops may run it only when Abdullah asks for that specific swap). Config `/root/freqtrade/config.json` is root only; `user_data/backtest_config.json` is the secrets free copy for backtests. |
 | lumibot | TrendFilter: SPY and QQQ, hold while last completed close > SMA200 (1% band), monthly check, fractional shares, $1,000 sleeve inside a $100k paper account, Telegram alerts | PAPER since 2026-10-30 21:54 UTC; rebuilt 2026-11-01 10:43 UTC with the state file fix (d47dd0b), restarts 0, ledger loaded `{'realized': 0.0, 'pos': {}}`, sleeping until the open; first decision Monday 2 Nov after the US open (14:30 UTC, 17:30 Kuwait) | config `/root/lumibot/config.json` (root), strategy `/root/lumibot/strategies/trend_filter.py` (repo copy `fixes/alpaca/strategies/trend_filter.py`, in sync since 327a318), ledger `strategies/trend_filter_state.json`; `docker compose up -d --build` as root |
-| trading-dashboard | Streamlit dashboard, 8 tabs, reads the dry run sqlite, the Lumibot ledger and config, Yahoo daily data for the CRT tab | on 127.0.0.1:8501 and 100.99.81.45:8501 (Tailscale) | `cd /root/trading-ops && git pull --ff-only origin main && docker compose -f deploy/docker-compose.dashboard.yml up -d --build` as root |
+| trading-dashboard | Streamlit dashboard, 10 tabs (Freqtrade, Alpaca, Stock Check, Robinhood, Risk, Performance, Strategies, Trades, Health, Signals; since c5926ca, not yet redeployed), reads the dry run sqlite, the Lumibot ledger and config, Yahoo daily data for the Stock Check tab | on 127.0.0.1:8501 and 100.99.81.45:8501 (Tailscale) | `cd /root/trading-ops && git pull --ff-only origin main && docker compose -f deploy/docker-compose.dashboard.yml up -d --build` as root |
 | weekly-audit (cron, Sunday 06:17 UTC) | read only audit by `claude -p`, report to Telegram and `~/trading_fixes/results/weekly/` | first run verified 2026-11-01 06:17 UTC: report `~/trading_fixes/results/weekly/2026-11-01.md` written, Telegram message arrived (Abdullah confirmed) | `/usr/local/sbin/weekly-audit` as root |
 
 Users: root for config, .env, compose and sudo rules; `claude-ops` for Claude Code (ACLs deny it the secret files;
@@ -51,7 +51,7 @@ Repository: `github.com/i3baid-cpu/trading-ops` (private), cloned at `/root/trad
   −$5.11 on five $22 trades; FLOKI bought 30 Oct with no stop. Proposed rules in `fixes/robinhood/RULES_v2.md`.
   Open decisions for Abdullah: ETH (long term hold outside the rule, or reduce in steps), the FLOKI stop,
   closing the manual meme sleeve. Nothing on Robinhood is automated.
-* CRT skill: the discretionary `crt-ict-trading-analyzer` was replaced by dashboard tab H: deterministic rules on
+* CRT skill: the discretionary `crt-ict-trading-analyzer` was replaced by dashboard tab 3 · Stock Check (was tab H): deterministic rules on
   closed candles, NO SETUP veto on reward to risk, sizing in fils for Kuwaiti prices, a swing Stock read, a long
   term weekly read with a 3 tranche plan, Yahoo fundamentals, and a signal log (`results/crt/crt_log.csv`) that
   must reach 30 resolved signals before any rule is changed. Rules in `docs/CRT_RULES_v2.md`.
@@ -69,8 +69,8 @@ Repository: `github.com/i3baid-cpu/trading-ops` (private), cloned at `/root/trad
 4. Drift check: the repo copy of TrendFilter had fallen behind the VPS. Compare the other deployed files with the repo
    (`/root/lumibot/config_v2.json`, `backtest_v2.py`) and copy the weekly reports into `results/weekly/`.
 5. BOURSA long term read for Abdullah (he is considering buying at 2698 fils for a 1 to 2 year hold): run tab
-   H with Horizon = Long term; the swing read on 29 Oct said DOWNTREND, RSI 29, support 2671.
-6. Nice to have: watchlist mode in tab H (his Kuwaiti holdings KFH, BOURSA, WARBABANK, AZNOULA, ALG, BPCC);
+   3 · Stock Check with Horizon = Long term; the swing read on 29 Oct said DOWNTREND, RSI 29, support 2671.
+6. Nice to have: watchlist mode in tab 3 · Stock Check (his Kuwaiti holdings KFH, BOURSA, WARBABANK, AZNOULA, ALG, BPCC);
    fill times in the Lumibot ledger; cancelled order alerts for Alpaca.
 
 ## How to work with Abdullah
