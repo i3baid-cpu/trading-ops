@@ -62,7 +62,7 @@ def pair_rows() -> list[dict]:
         vol_ratio = float(w["volume"].iloc[-1] / w["volume"].iloc[-21:-1].mean()) if w["volume"].iloc[-21:-1].mean() > 0 else float("nan")
         close = float(w["close"].iloc[-1])
         fired = close > ema50 and close > hh20 and vol_ratio > 1.0
-        rows.append({"Pair": name, "4h close": f"{close:.6g}", "EMA50": f"{ema50:.6g}", "Prior 20 bar high": f"{hh20:.6g}",
+        rows.append({"Pair": name, "As of": w.index[-1].strftime("%d %b %H:%M"), "4h close": f"{close:.6g}", "EMA50": f"{ema50:.6g}", "Prior 20 bar high": f"{hh20:.6g}",
                      "Volume vs mean": f"{vol_ratio:.2f}x" if vol_ratio == vol_ratio else "n/a",
                      "Breakout": "YES, entry condition met" if fired else ("above EMA50, no breakout" if close > ema50 else "below EMA50")})
     return rows
@@ -79,7 +79,7 @@ def render(X, ALL, kpi, money, num, pct, tone_of, badge, TZ, fmt_time):
     c = st.columns(4)
     with c[0]:
         if g["ok"]:
-            kpi("BTC gate (daily EMA100)", "OPEN" if g["open"] else "SHUT", f"BTC {g['close']:,.0f} vs {g['ema100']:,.0f} ({g['gap_pct']:+.2f}%) as of {g['as_of']}", "pos" if g["open"] else "neg")
+            kpi("BTC gate (daily EMA100)", "OPEN" if g["open"] else "SHUT", f"BTC {g['close']:,.0f} vs {g['ema100']:,.0f} ({g['gap_pct']:+.2f}%) · daily close of {g['as_of']} · next update 00:00 UTC", "pos" if g["open"] else "neg")
         else:
             kpi("BTC gate (daily EMA100)", "Not available", g["note"], "warn")
     with c[1]:
@@ -95,8 +95,11 @@ def render(X, ALL, kpi, money, num, pct, tone_of, badge, TZ, fmt_time):
         v3 = ft_all[ft_all["entry_time"] >= DL.V3_START]
         st.markdown(f"<div class='panel'><span class='dot dry'></span> <b>MemeSleeveV3 forward test</b> since {DL.V3_START:%d %b %Y %H:%M} UTC · {len(v3)} V3 trade(s) so far · {DL.V3_NOTE}<br><span class='src'>V3 buys only while the BTC gate is open and a pair closes a 4h candle above its prior 20 bar high on above average volume; exits on two 4h closes below EMA50, the gate shutting, a 15% stop, or a 10% trailing stop after +20%. Silence while the gate is shut is the filter working.</span></div>", unsafe_allow_html=True)
 
-    st.markdown("#### Entry conditions right now <span class='src'>recomputed from Yahoo 1h bars resampled to 4h, completed candles only; the bot uses Binance candles so small differences are normal</span>", unsafe_allow_html=True)
-    st.dataframe(pd.DataFrame(pair_rows()), hide_index=True, width="stretch")
+    st.markdown("<div class='src'>Two clocks: the BTC gate uses the last <b>completed daily</b> candle, so it updates once a day at 00:00 UTC (03:00 Kuwait) and shows yesterday's date until then. The pair checks below use the last <b>completed 4h</b> candle and update six times a day. A trade needs both: gate open on the daily, breakout on the 4h.</div>", unsafe_allow_html=True)
+    rows = pair_rows()
+    asof = next((r.get("As of") for r in rows if r.get("As of")), None)
+    st.markdown(f"#### Entry conditions right now <span class='src'>last completed 4h candle{(' opened ' + asof + ' UTC') if asof else ''}; recomputed from Yahoo 1h bars resampled to 4h; the bot uses Binance candles so small differences are normal</span>", unsafe_allow_html=True)
+    st.dataframe(pd.DataFrame(rows).drop(columns=["As of"], errors="ignore"), hide_index=True, width="stretch")
 
     left, right = st.columns([1.2, 1])
     with left:
