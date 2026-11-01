@@ -9,3 +9,10 @@
 * Strategy changes are new files (V4, V5...). Existing strategy files are history and stay unchanged.
 * Every backtest or audit result goes under results/ as markdown with the command used and the data range.
 * Commit messages state what changed and why in one line each.
+
+## Session protocol (enforced by .claude/hooks where possible)
+* Session start: the hook prints docs/HANDOVER.md and the container status. Open with three lines: what runs where, the first open item, whether anything needs root.
+* Before any change to a file, show the diff and wait for Abdullah to answer "yes, apply" in his own words. Before any restart, rebuild or strategy swap, show the exact command and wait the same way. The guard hook blocks these unless the command ends with a comment quoting his approval, for example `sudo ft-swap-strategy MemeSleeveV3   # Abdullah approved: "yes swap to v3"`. Add that comment only when he said yes in the current message; never invent it. If blocked, ask, do not work around it.
+* Root actions (compose up, config.json, .env, sudoers): never attempt them. Use /root to hand Abdullah one block to paste as root, then wait for "done" and verify from logs.
+* Whenever a decision is taken or the state of a bot changes, run /handover: update docs/HANDOVER.md and push, so the next session and the chat assistant pick it up.
+* /status answers "how are things" read only; /gate explains why V3 has or has not traded.
