@@ -40,6 +40,23 @@ html, body, [class*="css"] { font-family: Inter, "Segoe UI", system-ui, sans-ser
 .kpi.pos .v { color: #3fbf8f; } .kpi.neg .v { color: #e66767; } .kpi.warn .v { color: #e0a93a; }
 .badge { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: .04em; }
 .b-live { background: rgba(230,103,103,.18); color: #ff8a8a; border: 1px solid rgba(230,103,103,.5); }
+/* motion: tiles and panels rise in, status dots pulse, charts fade, hover lifts */
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255,255,255,.35); } 70% { box-shadow: 0 0 0 7px rgba(255,255,255,0); } 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); } }
+@keyframes shimmer { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+.kpi, .panel { animation: rise .55s cubic-bezier(.2,.7,.2,1) both; transition: transform .18s ease, border-color .18s ease; }
+.kpi:hover { transform: translateY(-2px); border-color: #3a4050; }
+div[data-testid="stColumn"]:nth-child(1) .kpi { animation-delay: 0ms; } div[data-testid="stColumn"]:nth-child(2) .kpi { animation-delay: 60ms; }
+div[data-testid="stColumn"]:nth-child(3) .kpi { animation-delay: 120ms; } div[data-testid="stColumn"]:nth-child(4) .kpi { animation-delay: 180ms; }
+div[data-testid="stColumn"]:nth-child(5) .kpi { animation-delay: 240ms; } div[data-testid="stColumn"]:nth-child(6) .kpi { animation-delay: 300ms; }
+div[data-testid="stColumn"]:nth-child(7) .kpi { animation-delay: 360ms; } div[data-testid="stColumn"]:nth-child(8) .kpi { animation-delay: 420ms; }
+.js-plotly-plot, div[data-testid="stDataFrame"] { animation: fadein .7s ease both; }
+.dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: middle; animation: pulse 2s infinite; }
+.dot.live { background: #ff8a8a; } .dot.dry { background: #f0b84a; } .dot.paper { background: #7fb3ff; } .dot.ok { background: #4fd0a0; } .dot.na { background: #9a9c99; animation: none; }
+.kpi.pos .v, .kpi.neg .v { transition: color .3s ease; }
+h2.title-anim { background: linear-gradient(90deg, #e8e8e3 0%, #7fb3ff 45%, #e8e8e3 60%); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent; animation: shimmer 6s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .kpi, .panel, .js-plotly-plot, div[data-testid="stDataFrame"], .dot, h2.title-anim { animation: none !important; } }
 .b-dry { background: rgba(201,133,0,.18); color: #f0b84a; border: 1px solid rgba(201,133,0,.5); }
 .b-paper { background: rgba(57,135,229,.18); color: #7fb3ff; border: 1px solid rgba(57,135,229,.5); }
 .b-na { background: rgba(154,156,153,.15); color: #c3c2b7; border: 1px solid rgba(154,156,153,.4); }
@@ -132,8 +149,8 @@ def mode_badge(system):
     if D.LIVE:
         al_pos = X["al_live"][0]
         alpaca = f"PAPER · {len(al_pos)} open" if al_pos is not None else "PAPER · no trades yet"
-    return {"Robinhood": badge("LIVE · real money", "live"), "Freqtrade": badge("DRY-RUN · simulated", "dry"),
-            "Alpaca": badge(alpaca, "paper"), "CRT skill": badge("ANALYSIS ONLY", "na")}[system]
+    return {"Robinhood": badge("<span class='dot live'></span>LIVE · real money", "live"), "Freqtrade": badge("<span class='dot dry'></span>DRY-RUN · simulated", "dry"),
+            "Alpaca": badge("<span class='dot paper'></span>" + alpaca, "paper"), "CRT skill": badge("ANALYSIS ONLY", "na")}[system]
 
 
 def LUMIBOT_STATE_NOTE(al_sum):
@@ -216,26 +233,73 @@ def apply_filters(df: pd.DataFrame) -> pd.DataFrame:
 
 T = apply_filters(ALL)
 
-st.markdown("## Trading Command Center")
+st.markdown("<h2 class='title-anim'>Trading Command Center</h2>", unsafe_allow_html=True)
 st.caption(f"Four separate setups, one read-only view. Times shown in {tz_name}. Latest record in the archive: {fmt_time(ref_time, TZ)}.")
 
-tab_names = ["A · Executive Overview", "B · Performance", "C · Strategy Comparison", "D · Trade Explorer",
-             "E · Risk", "F · System Health", "G · Signal Explanation", "H · CRT Stock Check"]
+tab_names = ["1 · Freqtrade", "2 · Alpaca", "3 · Stock Check", "4 · Robinhood", "5 · Risk", "6 · Performance",
+             "7 · Strategies", "8 · Trades", "9 · Health", "10 · Signals"]
 tabs = st.tabs(tab_names)
+T_FT, T_AL, T_CRT, T_RH, T_RISK, T_PERF, T_STRAT, T_TRADES, T_HEALTH, T_SIG = range(10)
+
+pos, acct = D.positions_table()
+snap = X["snap"]
+rh_all = ALL[ALL["system"] == "Robinhood"]
+ft_all = ALL[ALL["system"] == "Freqtrade"]
+m_rh, m_ft = D.compute_metrics(rh_all), D.compute_metrics(ft_all)
+unreal_known = pos["unrealized_known_basis"].sum()
+day_chg = pos["day_change"].sum()
+
+
+def period_pnl(trades, days):
+    c_ = trades[trades["pnl_usd"].notna() & trades["exit_time"].notna()]
+    if days is None:
+        return c_["pnl_usd"].sum() if len(c_) else None
+    cutoff = ref_time - pd.Timedelta(days=days)
+    s = c_[c_["exit_time"] >= cutoff]
+    return s["pnl_usd"].sum() if len(s) else 0.0
+
 
 # =========================================================================== #
-# A. EXECUTIVE OVERVIEW
+# 1. FREQTRADE
 # =========================================================================== #
-with tabs[0]:
-    pos, acct = D.positions_table()
-    snap = X["snap"]
-    rh_all = ALL[ALL["system"] == "Robinhood"]
-    ft_all = ALL[ALL["system"] == "Freqtrade"]
-    m_rh, m_ft = D.compute_metrics(rh_all), D.compute_metrics(ft_all)
-    unreal_known = pos["unrealized_known_basis"].sum()
-    day_chg = pos["day_change"].sum()
+with tabs[T_FT]:
+    import freqtrade_panel
+    freqtrade_panel.render(X, ALL, kpi, money, num, pct, tone_of, badge, TZ, fmt_time)
+    st.markdown("#### Realised by period <span class='src'>dry run USDT, by exit time</span>", unsafe_allow_html=True)
+    c = st.columns(4)
+    for i, (label, days) in enumerate([("Daily", 1), ("Weekly", 7), ("Monthly", 30), ("All-time", None)]):
+        v2 = period_pnl(ft_all, days)
+        with c[i]:
+            kpi(label, money(v2, currency="", signed=True), "dry-run, USDT", tone_of(v2))
 
-    st.markdown(f"#### Robinhood ••8275 {mode_badge('Robinhood')} &nbsp; <span class='src'>positions priced at the Oct 27 snapshot, cash adjusted for Oct 30 fills</span>", unsafe_allow_html=True)
+# =========================================================================== #
+# 2. ALPACA
+# =========================================================================== #
+with tabs[T_AL]:
+    import trendfilter_panel
+    trendfilter_panel.render(kpi, money, tone_of, badge, X.get("al_live"), X["al_cfg"])
+    bt = X["al_bt"]
+    st.markdown(
+        f"""<div class='panel'><h4>Why TrendFilter replaced SmaCross</h4>
+<table style='width:100%;font-size:13px'><tr style='color:#9a9c99'><td></td><td>SmaCross 20/50 (old)</td><td>TrendFilter SMA200 monthly (2017 to 2026 test)</td><td>SPY buy &amp; hold</td></tr>
+<tr><td>CAGR</td><td class='rule'>{bt['strategy_cagr_pct']:.2f}%</td><td class='rule'>13.8%</td><td class='rule'>13.4% price (15.1% with dividends)</td></tr>
+<tr><td>Max drawdown</td><td class='rule'>{bt['strategy_max_drawdown_pct']:.1f}% (barely invested)</td><td class='rule'>−19.9%</td><td class='rule'>−34.1%</td></tr>
+<tr><td>Time in market</td><td class='rule'>{bt['strategy_time_in_market_pct']}%</td><td class='rule'>84%</td><td class='rule'>100%</td></tr></table>
+<div class='src' style='margin-top:6px'>Sources: results/alpaca_trendfilter.md (TrendFilter) and the Oct 29 SmaCross backtest reported in HISTORY.md. TrendFilter does not beat the index; it halves the drawdown for about the index's return. 50/50 SPY and QQQ held outright returned 17.5% a year in the same test window.</div></div>""",
+        unsafe_allow_html=True)
+
+# =========================================================================== #
+# 3. STOCK CHECK (CRT)
+# =========================================================================== #
+with tabs[T_CRT]:
+    import crt_tab
+    crt_tab.render()
+
+# =========================================================================== #
+# 4. ROBINHOOD
+# =========================================================================== #
+with tabs[T_RH]:
+    st.markdown(f"#### Robinhood ••8275 {mode_badge('Robinhood')} &nbsp; <span class='src'>positions priced at the Oct 27 snapshot, cash adjusted for Oct 30 fills; the Robinhood API gives no equity history</span>", unsafe_allow_html=True)
     c = st.columns(6)
     with c[0]:
         kpi("Account equity", money(acct["total"]), f"Reported Oct 29: {money(snap['reported']['value_oct29'])}")
@@ -249,72 +313,15 @@ with tabs[0]:
         kpi("Unrealised (known basis only)", money(unreal_known, signed=True), "ETH/BTC basis is partial", tone_of(unreal_known))
     with c[5]:
         kpi("Day change (snapshot)", money(day_chg, signed=True), "vs previous close on Oct 27", tone_of(day_chg))
-
-    # period returns
-    def period_pnl(trades, days):
-        c_ = trades[trades["pnl_usd"].notna() & trades["exit_time"].notna()]
-        if days is None:
-            return c_["pnl_usd"].sum() if len(c_) else None
-        cutoff = ref_time - pd.Timedelta(days=days)
-        s = c_[c_["exit_time"] >= cutoff]
-        return s["pnl_usd"].sum() if len(s) else 0.0
-
-    st.markdown("#### Realised return by period <span class='src'>(realised only; equity history is not in the archive, so time-weighted returns are Not available)</span>", unsafe_allow_html=True)
-    c = st.columns(8)
+    st.markdown("#### Realised by period <span class='src'>live, FIFO, by exit time</span>", unsafe_allow_html=True)
+    c = st.columns(4)
     for i, (label, days) in enumerate([("Daily", 1), ("Weekly", 7), ("Monthly", 30), ("All-time", None)]):
         v = period_pnl(rh_all, days)
         with c[i]:
-            kpi(f"RH {label}", money(v, signed=True), "live, FIFO", tone_of(v))
-        v2 = period_pnl(ft_all, days)
-        with c[i + 4]:
-            kpi(f"FT {label}", money(v2, currency="", signed=True), "dry-run, USDT", tone_of(v2))
-
-    st.markdown("")
-    left, right = st.columns([1.15, 1])
+            kpi(label, money(v, signed=True), "live, FIFO", tone_of(v))
+    left, right = st.columns([1.3, 1])
     with left:
-        st.markdown("#### Active strategies")
-        ft_snap = " (Oct 30 snapshot)" if D.LIVE and "strategy" in X["ft_cfg"].get("_snapshot_keys", []) else ""
-        al_desc = f"{X['al_cfg']['strategy']} {X['al_cfg']['params']['fast']}/{X['al_cfg']['params']['slow']} daily · {', '.join(X['al_cfg']['symbols'])}"
-        al_meta = "backtest +2% vs SPY +123% · no paper trades"
-        if D.LIVE:
-            al_pos, al_sum = X["al_live"]
-            al_desc = f"{DL.ALPACA_STRATEGY} · SMA{al_sum['params'].get('sma', '?')} · {', '.join(al_sum['symbols'])} · ${al_sum['capital']:,.0f} sleeve"
-            al_meta = al_sum["status"]
-        rows = [
-            ("Robinhood", "Agent stock rebalance + crypto core + manual meme sleeve (inferred)", mode_badge("Robinhood"),
-             f"{len(rh_all)} lots · last fill {fmt_time(X['orders']['last_update'].max(), TZ)}"),
-            ("Freqtrade", f"{X['ft_cfg']['strategy']} · {X['ft_cfg']['timeframe']}{ft_snap} · stake {X['ft_cfg']['stake_amount']} USDT · max {int(X['ft_cfg']['max_open_trades'])} open",
-             mode_badge("Freqtrade"), f"{m_ft.closed} closed · bot state {X['ft_cfg']['state']} (snapshot)"),
-            ("Alpaca", al_desc, mode_badge("Alpaca"), al_meta),
-            ("CRT skill", "crt-ict-trading-analyzer (discretionary stock check)", mode_badge("CRT skill"), "no trades, no signal log"),
-        ]
-        html = "<div class='panel'><table style='width:100%;font-size:13px;border-collapse:collapse'>"
-        for s, desc, b, meta in rows:
-            html += f"<tr style='border-bottom:1px solid #2a2e38'><td style='padding:8px 4px;font-weight:600;white-space:nowrap'>{s}</td><td style='padding:8px 4px'>{desc}<br><span class='src'>{meta}</span></td><td style='padding:8px 4px;text-align:right'>{b}</td></tr>"
-        html += "</table></div>"
-        st.markdown(html, unsafe_allow_html=True)
-
-        st.markdown("#### Bot status and last successful update")
-        mt = X["mtimes"]
-        rh_last = X["orders"]["last_update"].max()
-        ft_last = D._kwt(X["ft_stats"]["profit"]["latest_trade_date"]).tz_localize(None).tz_localize(D.UTC)
-        status_rows = [
-            ("Robinhood MCP connector", "Read-only pull Oct 30 2026", fmt_time(rh_last, TZ), badge("snapshot", "warn")),
-            ("Freqtrade meme-sleeve", f"state={X['ft_cfg']['state']}, dry_run={X['ft_cfg']['dry_run']}", fmt_time(ft_last, TZ), badge("live sqlite" if D.LIVE else "snapshot", "ok" if D.LIVE else "warn")),
-            ("Alpaca lumibot", (f"paper={X['al_live'][1]['paper']}, {X['al_live'][1]['status']}" if D.LIVE else "paper=true, email verification pending (Oct 30)"),
-             fmt_time(X["al_live"][1]["state_mtime"], TZ) if D.LIVE else NA, badge("live ledger" if D.LIVE else "no trades", "ok" if D.LIVE else "na")),
-            ("CRT skill", "skill file present", NA, badge("n/a", "na")),
-        ]
-        html = "<div class='panel'><table style='width:100%;font-size:13px;border-collapse:collapse'><tr style='color:#9a9c99'><td>Component</td><td>State</td><td>Last record</td><td></td></tr>"
-        for a, b, c_, d_ in status_rows:
-            html += f"<tr style='border-top:1px solid #2a2e38'><td style='padding:7px 4px;font-weight:600'>{a}</td><td style='padding:7px 4px'>{b}</td><td style='padding:7px 4px' class='rule'>{c_}</td><td style='text-align:right'>{d_}</td></tr>"
-        foot = ("Freqtrade and Alpaca are read live from the mounted sqlite and ledger (refreshed every 60 s); Robinhood is still the archived pull. Times are last records, not a heartbeat."
-                if D.LIVE else "This dashboard reads exported files, so these are the last records in the archive, not a live heartbeat. Wire the loaders in data.py to the Freqtrade REST API (read-only user) and the Robinhood connector to make them live.")
-        html += f"</table><div class='src' style='margin-top:8px'>{foot}</div></div>"
-        st.markdown(html, unsafe_allow_html=True)
-
-    with right:
-        st.markdown("#### Open positions (Robinhood)")
+        st.markdown("#### Open positions")
         show = pos[["symbol", "type", "qty", "price", "market_value", "weight", "unrealized_known_basis", "basis_coverage", "price_asof"]].copy()
         show["weight"] = (show["weight"] * 100).round(1)
         show["basis_coverage"] = (show["basis_coverage"] * 100).round(0)
@@ -322,8 +329,9 @@ with tabs[0]:
         st.dataframe(show, hide_index=True, width="stretch",
                      column_config={"Qty": st.column_config.NumberColumn(format="%.6g"), "Price": st.column_config.NumberColumn(format="%.6g"),
                                     "Value $": st.column_config.NumberColumn(format="%.2f"), "Unreal. $ (known basis)": st.column_config.NumberColumn(format="%+.2f")})
+    with right:
         breaches = pos[pos["breach"]]
-        st.markdown("#### Current portfolio risk")
+        st.markdown("#### Portfolio risk")
         c1, c2, c3 = st.columns(3)
         with c1:
             kpi("Largest position", f"{pos.loc[pos['weight'].idxmax(), 'symbol']} {pos['weight'].max():.0%}", "limit 20% per position", "neg" if len(breaches) else "pos")
@@ -332,25 +340,12 @@ with tabs[0]:
         with c3:
             open_meme = pos[pos["symbol"].isin(D.MEME_COINS)]["market_value"].sum()
             kpi("Meme-coin exposure", money(open_meme), f"{open_meme / acct['total']:.1%} of account, no stop on file", "warn" if open_meme > 0 else "")
-        st.markdown("#### Freqtrade dry-run at a glance")
-        c1, c2, c3 = st.columns(3)
-        with c1:
-            kpi("Net after fees", money(m_ft.net_pnl, currency="USDT", signed=True), f"{m_ft.closed} trades · PF {num(m_ft.profit_factor)}", tone_of(m_ft.net_pnl))
-        with c2:
-            kpi("Win rate", pct(m_ft.win_rate, signed=False, digits=1), f"max {m_ft.max_consec_losses} losses in a row")
-        with c3:
-            kpi("Max drawdown", money(m_ft.max_drawdown, currency="USDT"), f"avg hold {D.fmt_td(m_ft.avg_duration)}", "warn")
-        if D.LIVE:
-            v3 = ft_all[ft_all["entry_time"] >= DL.V3_START]
-            st.caption(f"MemeSleeveV3 (4h, dry-run) since {DL.V3_START:%Y-%m-%d %H:%M} UTC: {DL.V3_NOTE}. "
-                       f"{len(v3)} V3 trade(s) so far; V1 trades opened before the switch stay labelled V1.")
-    import trendfilter_panel
-    trendfilter_panel.render(kpi, money, tone_of, badge, X.get("al_live"), X["al_cfg"])
+        st.markdown("<div class='panel'><h4>Open decisions (RULES_v2.md)</h4><ul style='font-size:13px;padding-left:18px;margin:0'><li>ETH at 66%: long term hold outside the 20% rule, or reduce in steps.</li><li>FLOKI (30 Oct): place the stop or close it.</li><li>Manual meme sleeve: 1 win, 4 stop outs, −$5.11; the data supports closing it and leaving meme coins to the Freqtrade forward test.</li></ul></div>", unsafe_allow_html=True)
 
 # =========================================================================== #
 # B. PERFORMANCE ANALYTICS
 # =========================================================================== #
-with tabs[1]:
+with tabs[T_PERF]:
     st.markdown("#### Performance analytics <span class='src'>filtered by the sidebar; realised P&L only, by exit time</span>", unsafe_allow_html=True)
     sys_choice = st.radio("Series", ["Freqtrade only", "Robinhood only", "Selected systems combined"], horizontal=True)
     P = T if sys_choice.startswith("Selected") else T[T["system"] == sys_choice.split()[0]]
@@ -433,7 +428,28 @@ with tabs[1]:
 # =========================================================================== #
 # C. STRATEGY COMPARISON
 # =========================================================================== #
-with tabs[2]:
+with tabs[T_STRAT]:
+    st.markdown("#### Active strategies")
+    ft_snap = " (Oct 30 snapshot)" if D.LIVE and "strategy" in X["ft_cfg"].get("_snapshot_keys", []) else ""
+    al_desc = f"{X['al_cfg']['strategy']} {X['al_cfg']['params'].get('fast', '')}/{X['al_cfg']['params'].get('slow', '')} daily · {', '.join(X['al_cfg']['symbols'])}"
+    al_meta = "backtest +2% vs SPY +123% · no paper trades"
+    if D.LIVE:
+        al_pos, al_sum = X["al_live"]
+        al_desc = f"{DL.ALPACA_STRATEGY} · SMA{al_sum['params'].get('sma', '?')} · {', '.join(al_sum['symbols'])} · ${al_sum['capital']:,.0f} sleeve"
+        al_meta = al_sum["status"]
+    rows = [
+        ("Freqtrade", f"{X['ft_cfg']['strategy']} · {X['ft_cfg']['timeframe']}{ft_snap} · stake {X['ft_cfg']['stake_amount']} USDT · max {int(X['ft_cfg']['max_open_trades'])} open",
+         mode_badge("Freqtrade"), f"{m_ft.closed} closed · bot state {X['ft_cfg']['state']}"),
+        ("Alpaca", al_desc, mode_badge("Alpaca"), al_meta),
+        ("Stock check", "CRT rules on closed candles, swing and long term reads, signal log (tab 3)", badge("ANALYSIS ONLY", "na"), "no trades"),
+        ("Robinhood", "Agent stock rebalance + crypto core + manual meme sleeve (inferred)", mode_badge("Robinhood"),
+         f"{len(rh_all)} lots · last fill {fmt_time(X['orders']['last_update'].max(), TZ)}"),
+    ]
+    html = "<div class='panel'><table style='width:100%;font-size:13px;border-collapse:collapse'>"
+    for s_, desc, b, meta in rows:
+        html += f"<tr style='border-bottom:1px solid #2a2e38'><td style='padding:8px 4px;font-weight:600;white-space:nowrap'>{s_}</td><td style='padding:8px 4px'>{desc}<br><span class='src'>{meta}</span></td><td style='padding:8px 4px;text-align:right'>{b}</td></tr>"
+    html += "</table></div>"
+    st.markdown(html, unsafe_allow_html=True)
     st.markdown("#### Strategy comparison <span class='src'>metrics recomputed from the trade records in the current filter; Alpaca and CRT rows come from reported figures or have no trades</span>", unsafe_allow_html=True)
     if D.LIVE:
         st.caption(f"MemeSleeveV3 (4h, dry-run): {DL.V3_NOTE}. Its row only counts trades it opened after "
@@ -471,7 +487,7 @@ with tabs[2]:
 # =========================================================================== #
 # D. TRADE EXPLORER
 # =========================================================================== #
-with tabs[3]:
+with tabs[T_TRADES]:
     st.markdown("#### Trade explorer")
     f1, f2, f3, f4, f5 = st.columns([1, 1, 1, 1, 2])
     with f1:
@@ -540,7 +556,7 @@ with tabs[3]:
 # =========================================================================== #
 # E. RISK MANAGEMENT
 # =========================================================================== #
-with tabs[4]:
+with tabs[T_RISK]:
     st.markdown("#### Risk management")
     pos, acct = D.positions_table()
     limit = X["snap"]["concentration_limit"]
@@ -597,7 +613,23 @@ with tabs[4]:
 # =========================================================================== #
 # F. SYSTEM HEALTH
 # =========================================================================== #
-with tabs[5]:
+with tabs[T_HEALTH]:
+    st.markdown("#### Bot status and last successful update")
+    rh_last = X["orders"]["last_update"].max()
+    ft_last = D._kwt(X["ft_stats"]["profit"]["latest_trade_date"]).tz_localize(None).tz_localize(D.UTC)
+    status_rows = [
+        ("Freqtrade meme-sleeve", f"state={X['ft_cfg']['state']}, dry_run={X['ft_cfg']['dry_run']}", fmt_time(ft_last, TZ), badge("live sqlite" if D.LIVE else "snapshot", "ok" if D.LIVE else "warn")),
+        ("Alpaca lumibot", (f"paper={X['al_live'][1]['paper']}, {X['al_live'][1]['status']}" if D.LIVE else "paper=true"),
+         fmt_time(X["al_live"][1]["state_mtime"], TZ) if D.LIVE else NA, badge("live ledger" if D.LIVE else "no trades", "ok" if D.LIVE else "na")),
+        ("Robinhood MCP connector", "Read-only pull Oct 30 2026", fmt_time(rh_last, TZ), badge("snapshot", "warn")),
+    ]
+    html = "<div class='panel'><table style='width:100%;font-size:13px;border-collapse:collapse'><tr style='color:#9a9c99'><td>Component</td><td>State</td><td>Last record</td><td></td></tr>"
+    for a_, b_, c_, d_ in status_rows:
+        html += f"<tr style='border-top:1px solid #2a2e38'><td style='padding:7px 4px;font-weight:600'>{a_}</td><td style='padding:7px 4px'>{b_}</td><td style='padding:7px 4px' class='rule'>{c_}</td><td style='text-align:right'>{d_}</td></tr>"
+    foot = ("Freqtrade and Alpaca are read live from the mounted sqlite and ledger (refreshed every 60 s); Robinhood is still the archived pull. Times are last records, not a heartbeat."
+            if D.LIVE else "This dashboard reads exported files, so these are the last records in the archive, not a live heartbeat.")
+    html += f"</table><div class='src' style='margin-top:8px'>{foot}</div></div>"
+    st.markdown(html, unsafe_allow_html=True)
     st.markdown("#### System health and diagnostics <span class='src'>from exported snapshots; a live heartbeat needs the read-only API loaders described in README</span>", unsafe_allow_html=True)
     now = pd.Timestamp.now(tz=D.UTC)
     rh_last = X["orders"]["last_update"].max()
@@ -668,7 +700,7 @@ with tabs[5]:
 # =========================================================================== #
 # G. SIGNAL EXPLANATION
 # =========================================================================== #
-with tabs[6]:
+with tabs[T_SIG]:
     st.markdown("#### Why did the system buy, sell or hold?")
     st.caption("Rule-based explanations are derived mechanically from the strategy code and the order records. AI commentary is written separately and labelled. Indicator values at signal time are Not available because the archive has no candle data.")
     options = ALL[ALL["entry_time"].notna()].sort_values("entry_time", ascending=False)
@@ -766,12 +798,6 @@ EXIT: stop fill or discretionary limit sell<br>
 5 round trips: 1 win (+3.79), 4 stops (−2.21 to −2.25)<br>
 <span style='color:#f0b84a'>no written rule document found</span></div></div>""", unsafe_allow_html=True)
 
-# =========================================================================== #
-# H. CRT STOCK CHECK
-# =========================================================================== #
-with tabs[7]:
-    import crt_tab
-    crt_tab.render()
 
 st.markdown("---")
 st.markdown("<span class='src'>Read-only analytics. No broker, exchange or bot connection is opened by this application and no order can be placed from it. Sources: audit pack of Oct 30 2026. Nothing shown here is estimated; where a figure cannot be derived from the records it is marked Not available.</span>", unsafe_allow_html=True)

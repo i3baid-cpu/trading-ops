@@ -76,7 +76,7 @@ def fetch_yahoo(ticker: str, market: str, period: str = "2y") -> tuple[pd.DataFr
         return None, "yfinance is not installed"
     sym = yahoo_symbol(ticker, market)
     try:
-        h = yf.Ticker(sym).history(period=period, interval="1d", auto_adjust=False)
+        h = yf.Ticker(sym).history(period=period, interval="1d", auto_adjust=False, timeout=8)
     except Exception as e:  # network, symbol
         return None, f"Yahoo fetch failed for {sym}: {e}"
     if h is None or h.empty:

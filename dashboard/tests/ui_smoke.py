@@ -7,8 +7,8 @@ from playwright.sync_api import sync_playwright
 url = sys.argv[1] if len(sys.argv) > 1 else "http://localhost:8501"
 out = sys.argv[2] if len(sys.argv) > 2 else "screenshots"
 os.makedirs(out, exist_ok=True)
-TABS = ["A · Executive Overview", "B · Performance", "C · Strategy Comparison", "D · Trade Explorer",
-        "E · Risk", "F · System Health", "G · Signal Explanation"]
+TABS = ["1 · Freqtrade", "2 · Alpaca", "3 · Stock Check", "4 · Robinhood", "5 · Risk", "6 · Performance",
+        "7 · Strategies", "8 · Trades", "9 · Health", "10 · Signals"]
 
 
 def settle(page, ms=1500):
@@ -45,7 +45,7 @@ with sync_playwright() as p:
         print(f"[OK] {name}: {n_charts} plotly charts, {n_tables} tables")
 
     # Interactions: trade explorer search + row selection
-    page.get_by_role("tab", name=TABS[3]).click(); settle(page)
+    page.get_by_role("tab", name=TABS[7]).click(); settle(page)
     box = page.get_by_label("Search (id, symbol, reason, note)")
     box.fill("FT-15"); box.press("Enter"); settle(page)
     assert_no_error(page, "search")
@@ -56,7 +56,7 @@ with sync_playwright() as p:
     box.fill(""); box.press("Enter"); settle(page)
 
     # Signal explanation: pick a Robinhood stop-out
-    page.get_by_role("tab", name=TABS[6]).click(); settle(page)
+    page.get_by_role("tab", name=TABS[9]).click(); settle(page)
     page.locator('[data-testid="stSelectbox"]', has_text="Trade or signal").locator('input').click()
     page.keyboard.type("RH-05"); page.keyboard.press("Enter"); settle(page)
     assert_no_error(page, "signal select")
@@ -71,7 +71,7 @@ with sync_playwright() as p:
     page.locator('[data-testid="stSidebar"] button[aria-label="Remove Robinhood"]').first.click()
     settle(page)
     assert_no_error(page, "system filter")
-    page.get_by_role("tab", name=TABS[1]).click(); settle(page)
+    page.get_by_role("tab", name=TABS[5]).click(); settle(page)
     page.screenshot(path=f"{out}/12_performance_freqtrade_only_nyt.png", full_page=True)
     print("[OK] Sidebar filters (system removed, timezone switched)")
     b.close()

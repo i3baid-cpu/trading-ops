@@ -18,7 +18,7 @@ except Exception:  # file mode
 def _yahoo_daily(sym: str) -> pd.DataFrame | None:
     try:
         import yfinance as yf
-        h = yf.Ticker(sym).history(period="15mo", interval="1d", auto_adjust=False)
+        h = yf.Ticker(sym).history(period="15mo", interval="1d", auto_adjust=False, timeout=8)
         if h is None or h.empty:
             return None
         h = h.reset_index().rename(columns={"Date": "date", "Close": "close"})
@@ -73,7 +73,7 @@ def render(kpi, money, tone_of, badge, al_live, al_cfg_file: dict):
     capital = float(cfg.get("capital_usd", 1000))
     al_pos, al_sum = al_live if al_live else (None, {})
 
-    st.markdown(f"#### Alpaca TrendFilter {badge('PAPER · $' + format(capital, ',.0f') + ' sleeve', 'paper')} &nbsp; <span class='src'>{cfg.get('strategy', 'trend_filter')} · {', '.join(symbols)} · SMA{sma} with {band:.0%} band · {params.get('check', 'daily')} check · paper = {cfg.get('paper')}</span>", unsafe_allow_html=True)
+    st.markdown(f"#### Alpaca TrendFilter {badge("<span class='dot paper'></span>PAPER · $" + format(capital, ',.0f') + ' sleeve', 'paper')} &nbsp; <span class='src'>{cfg.get('strategy', 'trend_filter')} · {', '.join(symbols)} · SMA{sma} with {band:.0%} band · {params.get('check', 'daily')} check · paper = {cfg.get('paper')}</span>", unsafe_allow_html=True)
     nxt = next_monthly_check()
     rows = signal_rows(symbols, sma, band)
     held = {} if al_pos is None else {r["symbol"]: r for _, r in al_pos.iterrows()}
