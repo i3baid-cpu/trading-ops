@@ -1,4 +1,4 @@
-# Handover: state of the trading setup as of 1 November 2026
+# Handover: state of the trading setup as of 2 November 2026
 
 Read this first in every Claude Code session on the VPS. It is the memory of the audit and build work done on
 30 and 31 October 2026 with Claude in the chat. Abdullah talks to you directly now; the rules below are his.
@@ -33,8 +33,10 @@ Repository: `github.com/i3baid-cpu/trading-ops` (private), cloned at `/root/trad
 * MemeSleeveV3 (4h breakout, BTC daily EMA100 gate, trailing 10% after +20%): +4.8% in sample (PF 1.34,
   152 trades), +0.4% in the not truly held out year (PF 1.19, 26 trades), p values 0.16 and 0.75. In position
   18 of 18 full rising months, out of 8 of 9 falling months. Running as a forward test only. No V4 tuning until
-  at least 4 weekly reports exist. `results/freqtrade_v3.md`. No V3 trades yet because the gate is shut:
-  BTC daily close 0.29% below EMA100 on 2026-10-31. `results/v3_gate_check.md`.
+  at least 4 weekly reports exist. `results/freqtrade_v3.md`. No V3 trades yet: the gate was shut on the 30 and
+  31 Oct closes (−0.57%, −0.29%) and reopened on the 1 Nov close (+0.69%, 78,354 vs EMA100 77,819); as of the
+  2 Nov 08:00 4h candle no pair is above its 20 bar high, and DOGE, SHIB, FLOKI are below EMA50.
+  `results/v3_gate_check_2026-11-02.md`, rerun with `python3 -I scripts/v3_gate_check.py`.
 * Alpaca SmaCross 20/50 with 5%/10% brackets: +2% vs SPY +123% over 2021 to 2026; brackets and 15% max
   exposure made it uninvestable; bracket orders also reject fractional shares. Replaced.
 * TrendFilter SMA200 monthly: picked on 2007 to 2016, run once on 2017 to 2026: CAGR 13.8% vs SPY 13.4%
@@ -72,6 +74,11 @@ Repository: `github.com/i3baid-cpu/trading-ops` (private), cloned at `/root/trad
    3 · Stock Check with Horizon = Long term; the swing read on 29 Oct said DOWNTREND, RSI 29, support 2671.
 6. Nice to have: watchlist mode in tab 3 · Stock Check (his Kuwaiti holdings KFH, BOURSA, WARBABANK, AZNOULA, ALG, BPCC);
    fill times in the Lumibot ledger; cancelled order alerts for Alpaca.
+7. SOL / V4 research study, approved by Abdullah 2 Nov: run it as claude-ops following `docs/RESEARCH_V4_PLAN.md`
+   (V3 unchanged on the unseen 2020-08 to 2023-10 window first, at most 6 pre-declared variants, results in
+   `results/research_v4_sol.md`). Research only; the live bot keeps V3.
+8. On 2 Nov a Claude Code session ran as root, not claude-ops (git had no root identity; files it created in
+   `/root/trading-ops` are root owned). Start sessions with `su - claude-ops`, then `cd ~/trading-ops && claude`.
 
 ## How to work with Abdullah
 * He is often on an iPad: give commands he can paste, one block at a time, and say which user runs them.
