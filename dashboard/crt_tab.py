@@ -11,6 +11,7 @@ import charts as C
 import crt
 import crt_data
 import metals
+import moci
 
 LOG_PATH = os.environ.get("CRT_LOG", os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "crt_log.csv"))
 
@@ -35,20 +36,26 @@ def _metal(name: str):
     return metals.fetch_kwd_gram(name)
 
 
+@st.cache_data(ttl=3600, show_spinner=False)
+def _moci():
+    return moci.fetch()[0]
+
+
 def _metal_panel(df: pd.DataFrame, metal: str, karat: str, shop_price: float) -> None:
     other = next(m for m in metals.METALS if m != metal)
-    cx = metals.context(df, metal, _metal(other)[0], karat, shop_price)
+    cx = metals.context(df, metal, _metal(other)[0], karat, shop_price, _moci())
+    ref = f"MOCI {cx['moci_ref']:.3f} ({cx['moci_gap']:+.1f}%)" if cx["moci_ref"] else "MOCI Not available"
     st.markdown(f"#### {metal} in KWD per gram <span class='src'>international price from Yahoo, converted with USD/KWD; completed days only</span>", unsafe_allow_html=True)
     k = st.columns(4)
     with k[0]:
-        st.markdown(f"<div class='kpi'><div class='l'>{karat} per gram</div><div class='v' style='font-size:16px'>{cx['karat_prices'][karat]:.3f} KWD</div><div class='d'>24K {cx['price']:.3f}</div></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='kpi'><div class='l'>{karat} per gram</div><div class='v' style='font-size:16px'>{cx['karat_prices'][karat]:.3f} KWD</div><div class='d'>24K {cx['price']:.3f} · {ref}</div></div>", unsafe_allow_html=True)
     with k[1]:
         st.markdown(f"<div class='kpi'><div class='l'>From 10 year high</div><div class='v' style='font-size:16px'>{cx['off_high']:+.1f}%</div><div class='d'>1 year {metals._fmt(cx['ret_1y'])}</div></div>", unsafe_allow_html=True)
     with k[2]:
         st.markdown(f"<div class='kpi'><div class='l'>Swings a year</div><div class='v' style='font-size:16px'>{metals._fmt(cx['vol'], '.0f')}</div><div class='d'>worst fall {cx['max_dd']:.0f}%</div></div>", unsafe_allow_html=True)
     with k[3]:
         if cx["premium"] is not None:
-            st.markdown(f"<div class='kpi {'neg' if cx['premium'] > 10 else ''}'><div class='l'>Shop premium</div><div class='v' style='font-size:16px'>{cx['premium']:+.1f}%</div><div class='d'>over international {karat}</div></div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='kpi {'neg' if cx['premium'] > 10 else ''}'><div class='l'>Shop premium</div><div class='v' style='font-size:16px'>{cx['premium']:+.1f}%</div><div class='d'>over {cx['premium_src']} {karat}</div></div>", unsafe_allow_html=True)
         else:
             st.markdown(f"<div class='kpi'><div class='l'>Gold/silver ratio</div><div class='v' style='font-size:16px'>{'Not available' if cx['ratio'] is None else format(cx['ratio'], '.0f')}</div><div class='d'>enter a shop price for the premium</div></div>", unsafe_allow_html=True)
     st.markdown("<div class='panel'><div class='rule' style='white-space:pre-wrap'>" + "\n".join(cx["lines"]) + "</div></div>", unsafe_allow_html=True)

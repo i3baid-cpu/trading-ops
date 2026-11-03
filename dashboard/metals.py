@@ -69,9 +69,11 @@ def _fmt(v: float, spec: str = "+.1f", suffix: str = "%") -> str:
     return "Not available" if v is None or (isinstance(v, float) and math.isnan(v)) else f"{v:{spec}}{suffix}"
 
 
-def context(d: pd.DataFrame, metal: str, other: pd.DataFrame | None = None, karat: str = "24K", shop_price: float = 0.0) -> dict:
-    """Facts a buyer needs besides the chart rules: karat prices, returns, distance from the high, how much it swings,
-    the worst past fall, the gold/silver ratio and, if given, the shop's premium over spot."""
+def context(d: pd.DataFrame, metal: str, other: pd.DataFrame | None = None, karat: str = "24K", shop_price: float = 0.0,
+            moci: dict | None = None) -> dict:
+    """Facts a buyer needs besides the chart rules: karat prices, the MOCI reference and the gap to it, returns, distance
+    from the high, how much it swings, the worst past fall, the gold/silver ratio and, if given, the shop's premium
+    over MOCI (over the international price when MOCI is not available)."""
     c = pd.Series(d["close"].astype(float).values, index=pd.to_datetime(d["date"]))
     px, last = float(c.iloc[-1]), c.index[-1]
     yrs = (last - c.index[0]).days / 365.25
@@ -90,6 +92,8 @@ def context(d: pd.DataFrame, metal: str, other: pd.DataFrame | None = None, kara
     peak = c[:trough].idxmax()
     rec = c[trough:][c[trough:] >= c[peak]]
     k_px = {k: px * n / 24 for k, n in KARATS.items()}
+    ref = (moci["karat"].get("24K") if metal == "Gold" else moci.get("silver_gram")) if moci else None
+    gap = (px / ref - 1) * 100 if ref else None
 
     lines = [
         f"{metal}: {px:.3f} KWD per gram of 24K at the last daily close ({last:%Y-%m-%d}), the international price. By purity: "
@@ -102,6 +106,13 @@ def context(d: pd.DataFrame, metal: str, other: pd.DataFrame | None = None, kara
         f"Worst fall in this data: {dd.min() * 100:.0f}% from {peak:%Y-%m-%d} to {trough:%Y-%m-%d}; "
         + (f"back above that high by {rec.index[0]:%Y-%m-%d}." if len(rec) else "not yet back above that high."),
     ]
+    if ref:
+        lines.insert(1, f"MOCI reference for {moci['date']}: {ref:.3f} KWD per gram"
+                     + (" of 24K, " + ", ".join(f"{k} {v:.3f}" for k, v in moci["karat"].items() if k != "24K") if metal == "Gold" else "")
+                     + f". The price above is {gap:+.1f}% from it. MOCI is one Central Bank of Kuwait price per business day and the "
+                     "price above is the US futures close, so a gap of a percent or two is timing, not an error.")
+    else:
+        lines.insert(1, "MOCI reference price: Not available.")
     ratio = None
     if other is not None and len(other):
         o = pd.Series(other["close"].astype(float).values, index=pd.to_datetime(other["date"]))
@@ -114,13 +125,18 @@ def context(d: pd.DataFrame, metal: str, other: pd.DataFrame | None = None, kara
                          "Above the median, silver is cheap relative to gold by its own history; below it, gold is. Context, not a timing signal.")
     if ratio is None:
         lines.append("Gold/silver ratio: Not available.")
-    prem = None
+    prem, src = None, None
     if shop_price and shop_price > 0:
-        prem = (shop_price / k_px[karat] - 1) * 100
-        lines.append(f"Shop check: {shop_price:.3f} KWD per gram of {karat} against {k_px[karat]:.3f} international = {prem:+.1f}% premium. "
+        if ref:
+            base, src = (moci["karat"].get(karat) if metal == "Gold" else None) or ref * KARATS[karat] / 24, f"MOCI {moci['date']}"
+        else:
+            base, src = k_px[karat], "international"
+        prem = (shop_price / base - 1) * 100
+        lines.append(f"Shop check: {shop_price:.3f} KWD per gram of {karat} against {base:.3f} ({src}) = {prem:+.1f}% premium. "
                      "You pay it on the way in and usually do not get it back when selling; compare shops on this number.")
     lines.append("Known history, not from this data: gold took about 9 years (2011 to 2020) to regain its 2011 high in USD, and silver's "
                  "2011 high stood for well over a decade. Metals pay no income, so the whole return is the price; staged buying "
                  "protects you more than picking the exact day.")
     return {"price": px, "karat_prices": k_px, "off_high": off_hi, "ret_1y": rets["1 year"], "vol": vol,
-            "max_dd": float(dd.min() * 100), "ratio": ratio, "premium": prem, "lines": lines}
+            "max_dd": float(dd.min() * 100), "ratio": ratio, "premium": prem, "premium_src": src,
+            "moci_ref": ref, "moci_gap": gap, "lines": lines}
