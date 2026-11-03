@@ -52,6 +52,8 @@ def price_unit_factor(price: float, market: str) -> float:
 
 
 def tick_size(price: float, market: str) -> float:
+    if market == "Metals":  # KWD per gram, priced to the fils
+        return 0.001
     if market == "KW":
         for ceiling, tick in KW_TICKS:
             if price < ceiling:
