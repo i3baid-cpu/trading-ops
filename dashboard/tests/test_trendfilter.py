@@ -60,6 +60,15 @@ def test_seed_matches_the_ledger_and_reads_cleanly():
     assert all("2026-11 check" in s and "buy line" in s for s in w["why"])
 
 
+def test_bot_signals_come_from_the_latest_daily_line():
+    j = TC.read_journal(SEED)
+    sig = TC.bot_signals(j)
+    assert sig["SPY"] == (date(2026, 11, 2), 755.72, 725.98)
+    t = TC.trigger(*sig["SPY"][1:], 0.01, True, sig["SPY"][0], "bot")
+    assert abs(t["line"] - 725.98 * 0.99) < 1e-9 and t["would"] == "HOLD"
+    assert TC.bot_signals(TC.read_journal("/nonexistent")) == {}
+
+
 def test_journal_skips_bad_lines_and_missing_file():
     with tempfile.NamedTemporaryFile("w", suffix=".jsonl", delete=False) as fh:
         fh.write('{"ts": "2026-11-02T14:31:03+00:00", "event": "fill", "symbol": "SPY", "side": "buy", "qty": 1, "price": 10}\n')

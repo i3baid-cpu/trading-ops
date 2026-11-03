@@ -116,7 +116,11 @@ def render(kpi, money, tone_of, badge, al_live, al_cfg_file: dict):
     curve = TC.sleeve_curve(TC.fills(journal), px, capital, _ny_day, symbols[0]) if not journal.empty else pd.DataFrame()
     bench = float(curve["bench"].iloc[-1]) if not curve.empty else None
 
-    triggers = {s: TC.next_trigger(done[s], sma, band, s in held) for s in symbols if s in done}
+    # The bot's own close and SMA from its latest daily journal line; Yahoo only when the journal has none.
+    # (On 3 Nov the bot's SPY SMA200 was 726.30 and Yahoo's 729.15: the two sources adjust past prices differently.)
+    bot_sig = TC.bot_signals(journal)
+    triggers = {s: (TC.trigger(bot_sig[s][1], bot_sig[s][2], band, s in held, bot_sig[s][0], "bot") if s in bot_sig
+                    else TC.next_trigger(done[s], sma, band, s in held) if s in done else None) for s in symbols}
 
     # What's going on, in sentences.
     lines = []
@@ -135,10 +139,10 @@ def render(kpi, money, tone_of, badge, al_live, al_cfg_file: dict):
             continue
         if s in held:
             lines.append(f"<b>{s}</b> sells at the {nxt:%a %d %b} check only if its last close before then is below about <b>{t['line']:,.2f}</b> "
-                         f"(today's SMA{sma} {t['sma']:,.2f} minus {band:.0%}); the {t['as_of']:%d %b} close {t['close']:,.2f} is {t['cushion_pct']:+.1f}% from that line.")
+                         f"({t['source']} SMA{sma} {t['sma']:,.2f} minus {band:.0%}); the latest completed close {t['close']:,.2f} (as of {t['as_of']:%d %b}) is {t['cushion_pct']:+.1f}% from that line.")
         else:
             lines.append(f"<b>{s}</b> is bought at the {nxt:%a %d %b} check only if its last close before then is above about <b>{t['line']:,.2f}</b> "
-                         f"(SMA{sma} plus {band:.0%}); the {t['as_of']:%d %b} close {t['close']:,.2f} is {t['cushion_pct']:+.1f}% from that line.")
+                         f"({t['source']} SMA{sma} plus {band:.0%}); the latest completed close {t['close']:,.2f} (as of {t['as_of']:%d %b}) is {t['cushion_pct']:+.1f}% from that line.")
     lines.append("Between checks the bot does nothing, whatever the price does: it decides once a month, on the first trading day.")
     st.markdown("<div class='panel'><h4>What's going on</h4><ul style='font-size:13.5px;padding-left:18px;margin:0'>"
                 + "".join(f"<li>{l}</li>" for l in lines) + "</ul></div>", unsafe_allow_html=True)
@@ -212,7 +216,8 @@ def render(kpi, money, tone_of, badge, al_live, al_cfg_file: dict):
             st.dataframe(ct.iloc[::-1], hide_index=True, width="stretch")
     st.caption(f"The replay starts flat at the first check with {sma} sessions of history, so its earliest rows can differ from a bot that had been running then. "
                "The bot started on 30 Oct 2026; everything before its first journal row is what the rule would have done, not trades. "
-               "Prices are Yahoo daily closes (not dividend adjusted) and the latest bar can be intraday; the bot uses Alpaca's bars, so its numbers can differ by cents. "
+               "Charts, the replay and the sleeve value use Yahoo daily closes (the latest bar can be intraday). The bot uses Alpaca's bars, whose SMA200 can differ "
+               "from Yahoo's by about half a percent, so the sell and buy lines above use the bot's own numbers from its latest daily journal line when there is one. "
                "The dashboard has no broker access.")
 
 

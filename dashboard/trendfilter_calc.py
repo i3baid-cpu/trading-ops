@@ -81,10 +81,28 @@ def next_trigger(h: pd.DataFrame, sma: int, band: float, held: bool) -> dict | N
     if len(h) < sma:
         return None
     last = h.iloc[-1]
-    close, avg = float(last["close"]), float(last["sma"])
+    return trigger(float(last["close"]), float(last["sma"]), band, held, last["date"], "Yahoo")
+
+
+def trigger(close: float, avg: float, band: float, held: bool, as_of, source: str) -> dict:
     line = avg * (1 - band) if held else avg * (1 + band)
-    return {"as_of": last["date"], "close": close, "sma": avg, "line": line, "cushion_pct": (close / line - 1) * 100,
+    return {"as_of": as_of, "close": close, "sma": avg, "line": line, "cushion_pct": (close / line - 1) * 100, "source": source,
             "would": ("SELL" if close < line else "HOLD") if held else ("BUY" if close > line else "STAY OUT")}
+
+
+def bot_signals(journal: pd.DataFrame) -> dict:
+    """{symbol: (day, close, sma)} from the latest daily journal line: the numbers the bot itself compares."""
+    if journal.empty or "signals" not in journal:
+        return {}
+    d = journal[journal["event"] == "daily"]
+    if d.empty:
+        return {}
+    last = d.iloc[-1]
+    out = {}
+    for s, v in (last["signals"] or {}).items():
+        if isinstance(v, dict) and v.get("close") is not None and v.get("sma") is not None:
+            out[s] = (pd.to_datetime(last["day"]).date(), float(v["close"]), float(v["sma"]))
+    return out
 
 
 def fills(journal: pd.DataFrame) -> pd.DataFrame:
