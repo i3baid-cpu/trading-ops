@@ -213,3 +213,63 @@ def hour_heat_fig(trades: pd.DataFrame, tz) -> go.Figure:
     fig.update_traces(marker=dict(cornerradius=3))
     fig.update_xaxes(title_text=f"Entry hour ({tz.key})", dtick=2)
     return base_layout(fig, height=240, title="Net P&L by entry hour", hovermode="closest")
+
+
+ACTION_MARK = {"BUY": ("triangle-up", POS), "SELL": ("triangle-down", NEG), "HOLD (in)": ("circle", SERIES[0]), "STAY OUT": ("circle-open", MUTED)}
+
+
+def trendfilter_price_fig(h: pd.DataFrame, sym: str, sma: int, band: float, checks: pd.DataFrame, fills: pd.DataFrame,
+                          avg_cost: float | None, next_check=None) -> go.Figure:
+    """Daily close with the SMA band, a marker for each monthly check (what the rule decided) and the bot's real fills."""
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=h["date"], y=h["upper"], mode="lines", line=dict(width=0), hoverinfo="skip", showlegend=False))
+    fig.add_trace(go.Scatter(x=h["date"], y=h["lower"], mode="lines", line=dict(width=0), fill="tonexty",
+                             fillcolor="rgba(201,133,0,0.18)", name=f"±{band:.0%} band (no change inside it)", hoverinfo="skip"))
+    fig.add_trace(go.Scatter(x=h["date"], y=h["sma"], mode="lines", name=f"SMA{sma}", line=dict(color=WARN, width=2),
+                             hovertemplate="%{x|%d %b %Y}<br>SMA" + str(sma) + " %{y:,.2f}<extra></extra>"))
+    fig.add_trace(go.Scatter(x=h["date"], y=h["close"], mode="lines", name=f"{sym} close", line=dict(color=SYMBOL_COLOR.get(sym, SERIES[0]), width=2),
+                             hovertemplate="%{x|%d %b %Y}<br>Close %{y:,.2f}<extra></extra>"))
+    for action, (symbol, color) in ACTION_MARK.items():
+        c = checks[checks["action"] == action]
+        if c.empty:
+            continue
+        fig.add_trace(go.Scatter(x=c["check_day"], y=c["close"], mode="markers", name=f"Check: {action}",
+                                 marker=dict(symbol=symbol, size=11, color=color, line=dict(color=color, width=1.5)),
+                                 customdata=c[["why", "source"]].values,
+                                 hovertemplate="Check %{x|%d %b %Y}: " + action + "<br>%{customdata[0]}<br><i>%{customdata[1]}</i><extra></extra>"))
+    if not fills.empty:
+        for side, color, symbol in (("buy", POS, "star"), ("sell", NEG, "x")):
+            f = fills[fills["side"] == side]
+            if len(f):
+                fig.add_trace(go.Scatter(x=f["day"], y=f["price"], mode="markers", name=f"Bot {side} (paper fill)",
+                                         marker=dict(symbol=symbol, size=15, color=color, line=dict(color=TEXT, width=1)),
+                                         customdata=f[["qty"]].values,
+                                         hovertemplate="%{x|%d %b %Y} " + side.upper() + " %{customdata[0]:.3f} @ %{y:,.2f}<extra></extra>"))
+    if avg_cost:
+        fig.add_hline(y=avg_cost, line=dict(color=POS, dash="dot", width=1), annotation_text=f"your average cost {avg_cost:,.2f}",
+                      annotation_font_color=POS, annotation_position="bottom left")
+    if next_check is not None:
+        fig.add_vline(x=pd.Timestamp(next_check).value / 1e6, line=dict(color=MUTED, dash="dash", width=1),
+                      annotation_text="next check", annotation_font_color=MUTED)
+    fig.update_yaxes(title_text="USD")
+    return base_layout(fig, height=420, title=f"{sym}: close vs SMA{sma}, monthly decisions and fills", hovermode="closest")
+
+
+def sleeve_value_fig(curve: pd.DataFrame, capital: float, daily: pd.DataFrame | None = None, bench_label: str = "Same $ in SPY, held") -> go.Figure:
+    fig = go.Figure()
+    if curve.empty:
+        fig.add_annotation(text="No fills in the journal yet", showarrow=False, font=dict(color=MUTED))
+        return base_layout(fig, height=320)
+    fig.add_trace(go.Scatter(x=curve["date"], y=curve["value"], mode="lines+markers", name="TrendFilter sleeve",
+                             line=dict(color=SERIES[2], width=2.5), marker=dict(size=6),
+                             hovertemplate="%{x|%d %b %Y}<br>Sleeve $%{y:,.2f}<extra></extra>"))
+    fig.add_trace(go.Scatter(x=curve["date"], y=curve["bench"], mode="lines", name=bench_label,
+                             line=dict(color=MUTED, width=1.5, dash="dot"),
+                             hovertemplate="%{x|%d %b %Y}<br>Hold $%{y:,.2f}<extra></extra>"))
+    if daily is not None and not daily.empty:
+        fig.add_trace(go.Scatter(x=daily["date"], y=daily["value"], mode="markers", name="Bot's own daily figure",
+                                 marker=dict(symbol="diamond-open", size=10, color=TEXT),
+                                 hovertemplate="%{x|%d %b %Y}<br>Bot reported $%{y:,.2f}<extra></extra>"))
+    fig.add_hline(y=capital, line=dict(color=GRID, width=1), annotation_text=f"${capital:,.0f} start", annotation_font_color=MUTED)
+    fig.update_yaxes(title_text="USD", tickprefix="$")
+    return base_layout(fig, height=320, title="Sleeve value per day (Yahoo closes x the bot's fills)")

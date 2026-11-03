@@ -157,6 +157,27 @@ def LUMIBOT_STATE_NOTE(al_sum):
     return f"last written {fmt_time(al_sum['state_mtime'], D.UTC)} UTC" if al_sum["state_mtime"] is not None else "file not found"
 
 
+def alpaca_held():
+    return len(X["al_live"][0]) if D.LIVE and X["al_live"][0] is not None else 0
+
+
+def alpaca_status_line():
+    if not D.LIVE:
+        return "File mode: no live ledger"
+    pos, s = X["al_live"]
+    held = ", ".join(f"{r.qty:.3f} {r.symbol}" for r in pos.itertuples()) if pos is not None else "nothing"
+    return f"Holds {held}; realised {money(s.get('realized') or 0.0, signed=True)}"
+
+
+def alpaca_journal_line():
+    import trendfilter_calc as TC
+    j = TC.read_journal(TC.JOURNAL)
+    if j.empty:
+        return "Bot journal: not found (fill times and reasons not available)"
+    n = int((j["event"] == "fill").sum())
+    return f"Bot journal: {n} fill(s), last event {fmt_time(j['ts'].max(), TZ)}"
+
+
 def fmt_time(ts, tz):
     if ts is None or pd.isna(ts):
         return NA
@@ -213,7 +234,7 @@ with st.sidebar:
 <span class="src">
 <b>Robinhood</b>: 23 orders pulled read-only from the Robinhood API on Oct 30 2026 (orders_full.csv). Positions and cash from the Oct 27 dashboard snapshot, adjusted for the Oct 30 fills.<br><br>
 <b>Freqtrade</b>: 21 dry-run trades and the /profit and /show_config snapshots from the bot API on Oct 30 2026.<br><br>
-<b>Alpaca</b>: config.json plus the headline backtest numbers written in HISTORY.md. No paper trades exist yet.<br><br>
+<b>Alpaca</b>: TrendFilter paper sleeve. Live mode reads the Lumibot config, the sleeve ledger and the bot journal (fills, monthly decisions, daily value) read only; prices are Yahoo daily closes. File mode has only the archived SmaCross config and backtest headline.<br><br>
 <b>CRT skill</b>: SKILL.md only. No trades, no signals.<br><br>
 Robinhood strategy names are <i>inferred</i> from order patterns. Candle data is not in the archive, so no indicator values are shown and no numbers are estimated.
 </span>""",
@@ -478,7 +499,8 @@ with tabs[T_STRAT]:
     for col, (sysname, lines) in zip([s1, s2, s3, s4], [
         ("Robinhood", ["Live since Aug 25 2026 (agent trades)", "5 meme-sleeve round trips: 1 win, 4 stop-outs", "No backtest exists for the manual rules", "Mock ledger: not created"]),
         ("Freqtrade", ["Dry-run since Oct 29 15:15 KWT", "21 closed, 1.4 days of history", "Earlier 6 to 8 trades lost on container recreate", "Backtest vs dry-run agreement: not checked yet"]),
-        ("Alpaca", ["Paper account Oct 29, 0 trades", "Backtest 2021 to 2026: +2% vs SPY +123%", "Buy branch of strategy file truncated in archive", "Go-live: needs weeks of paper first"]),
+        ("Alpaca", ["TrendFilter paper since Oct 30 2026, $1,000 sleeve", alpaca_status_line(),
+                    "Test 2017 to 2026: CAGR 13.8% vs SPY 13.4%, max drawdown −19.9% vs −34.1%", "Go-live: needs your written approval"]),
         ("CRT skill", ["Skill text present (crt-ict-trading-analyzer)", "No signal log, no trades", "Discretionary, not automatable as written", "Needs non-repainting rule spec"]),
     ]):
         with col:
@@ -594,7 +616,7 @@ with tabs[T_RISK]:
         {"Rule": "Robinhood: max daily / monthly loss", "Used": NA, "Budget": "not defined", "Status": "MISSING"},
         {"Rule": "Freqtrade: open trades", "Used": f"{X['ft_stats']['count']['current']} of {X['ft_stats']['count']['max']}", "Budget": str(X["ft_stats"]["count"]["max"]), "Status": "OK"},
         {"Rule": "Freqtrade: max drawdown rule / kill switch", "Used": f"{X['ft_stats']['profit']['max_drawdown_abs']:.2f} USDT observed", "Budget": "not defined", "Status": "MISSING"},
-        {"Rule": "Alpaca: max open positions", "Used": "0 of 3", "Budget": "3 × 5% stake, bracket 5% stop / 10% TP", "Status": "OK"},
+        {"Rule": "Alpaca: open positions", "Used": f"{alpaca_held()} of 2", "Budget": "2 × 49% of the $1,000 sleeve; no stop, the exit is the monthly SMA200 check", "Status": "OK"},
         {"Rule": "Alpaca: daily loss limit", "Used": NA, "Budget": "not defined", "Status": "MISSING"},
     ])
     def _style(v):
@@ -646,7 +668,8 @@ with tabs[T_HEALTH]:
     cards = [
         ("Robinhood MCP connector", badge("read-only pull", "ok"), [f"Last order update: {fmt_time(rh_last, TZ)}", f"Data age: {age(rh_last)}", "Orders: 23 (16 crypto filled, 2 canceled, 5 stock)", "Fees / reasons: not returned by API"]),
         ("Freqtrade meme-sleeve", badge(f"state {X['ft_cfg']['state']} · dry_run", "dry"), [f"Last trade close: {fmt_time(ft_last, TZ)}", f"Data age: {age(ft_last)}", f"Version {X['ft_cfg']['version']} · {X['ft_cfg']['exchange']} {X['ft_cfg']['trading_mode']}", "API: 127.0.0.1 + Tailscale only (fixed Oct 29)"]),
-        ("Alpaca lumibot", badge("paper · idle", "paper"), ["No fills, no orders yet", "Email verification pending (Oct 30)", "Telegram alerts: not set up", "Strategy buy branch truncated in archive"]),
+        ("Alpaca lumibot", badge("paper · TrendFilter", "paper"), [alpaca_status_line(), alpaca_journal_line(),
+                                                                 "Telegram alerts on (startup, fills, errors, daily summary)", "Strategy file in the repo: fixes/alpaca/strategies/trend_filter.py"]),
         fresh_card,
     ]
     for col, (title, b, lines) in zip(h, cards):
@@ -691,8 +714,8 @@ with tabs[T_HEALTH]:
         ("2026-10-29", "Robinhood", "Dashboard live refresh fails on iOS/browser", "Not resolved; scheduled refresh declined", "open"),
         ("2026-10-29", "Robinhood", "Portfolio bot says it does not manage the account while rules say 'AI-managed'", "Clarify who places orders and under which rule", "open"),
         ("2026-10-30", "Robinhood", "FLOKI bought with no protective stop on file", "Place GTC stop or document why not", "open"),
-        ("2026-10-30", "Alpaca", "Email verification required before trading", "Pending", "open"),
-        ("2026-10-30", "Alpaca", "sma_cross.py buy branch truncated in archive", "Pull the live file from the VPS to audit", "open"),
+        ("2026-10-30", "Alpaca", "Email verification required before trading", "Done: the paper account filled its first orders on Nov 2", "closed"),
+        ("2026-10-30", "Alpaca", "sma_cross.py buy branch truncated in archive", "SmaCross retired Oct 30; TrendFilter replaced it and its file is in the repo", "closed"),
         ("ongoing", "All", "No kill switch, daily loss cap or alert routine implemented", "Define unified rules (see roadmap)", "open"),
     ], columns=["Date", "System", "Incident", "Action", "Status"])
     st.dataframe(inc.style.map(lambda v: {"open": "color:#f0b84a;font-weight:600", "closed": "color:#4fd0a0"}.get(v, ""), subset=["Status"]), hide_index=True, width="stretch")
@@ -780,15 +803,17 @@ stop {cfg['stoploss']:.0%} market, no trailing<br>
 stake {cfg['stake_amount']} USDT, max open {int(cfg['max_open_trades'])}<br>
 orders limit/limit, timeout 10 min</div></div>""", unsafe_allow_html=True)
     with r2:
-        a = X["al_cfg"]
-        st.markdown(f"""<div class='panel'><h4>SmaCross (Alpaca / Lumibot)</h4><div class='rule'>
-symbols {', '.join(a['symbols'])} · daily bars, 1 iteration/day<br>
-ENTER on SMA{a['params']['fast']} crossing above SMA{a['params']['slow']}<br>
-EXIT on SMA{a['params']['fast']} crossing below SMA{a['params']['slow']}<br>
-bracket: stop {a['stoploss_pct']:.0%}, take-profit {a['takeprofit_pct']:.0%}<br>
-stake {a['stake_pct']:.0%} of portfolio, max {a['max_open_positions']} positions<br>
-paper = {a['paper']}<br>
-<span style='color:#f0b84a'>buy branch truncated in archived file</span></div></div>""", unsafe_allow_html=True)
+        a = (DL.load_lumibot_config() if D.LIVE else None) or {}
+        ap = a.get("params", {})
+        sma, band = ap.get("sma", 200), float(ap.get("band_pct", 0.01))
+        st.markdown(f"""<div class='panel'><h4>TrendFilter (Alpaca / Lumibot)</h4><div class='rule'>
+symbols {', '.join(a.get('symbols', ['SPY', 'QQQ']))} · daily bars, decides once a month on the first NYSE session<br>
+BUY if not held and last completed close &gt; SMA{sma} × {1 + band:.2f}<br>
+SELL if held and last completed close &lt; SMA{sma} × {1 - band:.2f}<br>
+inside the band: keep the previous state<br>
+no stop, no take-profit (removed on purpose)<br>
+size {a.get('stake_pct', 0.5):.0%} × 98% of ($1,000 + realised) per symbol<br>
+paper = {a.get('paper', True)}{'' if D.LIVE else ' <span style="color:#f0b84a">(file mode: defaults shown)</span>'}</div></div>""", unsafe_allow_html=True)
     with r3:
         st.markdown("""<div class='panel'><h4>Robinhood meme sleeve (inferred from orders)</h4><div class='rule'>
 BUY ≈ $22 via limit order<br>
