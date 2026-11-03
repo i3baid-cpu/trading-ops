@@ -1,4 +1,4 @@
-# Handover: state of the trading setup as of 2 November 2026
+# Handover: state of the trading setup as of 3 November 2026
 
 Read this first in every Claude Code session on the VPS. It is the memory of the audit and build work done on
 30 and 31 October 2026 with Claude in the chat. Abdullah talks to you directly now; the rules below are his.
@@ -15,8 +15,8 @@ Read this first in every Claude Code session on the VPS. It is the memory of the
 ## What runs on this VPS (Hetzner, Ubuntu, 4 GB)
 | Container | What | State | How to change |
 |---|---|---|---|
-| freqtrade | MemeSleeveV3, 4h, DOGE PEPE SHIB FLOKI /USDT, Binance spot, stake 25 USDT, max 2 | DRY RUN since 2026-10-30 21:26 UTC; Telegram alerts on | `sudo ft-swap-strategy <Name>` (claude-ops may run it only when Abdullah asks for that specific swap). Config `/root/freqtrade/config.json` is root only; `user_data/backtest_config.json` is the secrets free copy for backtests. |
-| lumibot | TrendFilter: SPY and QQQ, hold while last completed close > SMA200 (1% band), monthly check, fractional shares, $1,000 sleeve inside a $100k paper account, Telegram alerts | PAPER since 2026-10-30 21:54 UTC; rebuilt 2026-11-01 10:43 UTC with the state file fix (d47dd0b), restarts 0, ledger loaded `{'realized': 0.0, 'pos': {}}`, sleeping until the open; first decision Monday 2 Nov after the US open (14:30 UTC, 17:30 Kuwait) | config `/root/lumibot/config.json` (root), strategy `/root/lumibot/strategies/trend_filter.py` (repo copy `fixes/alpaca/strategies/trend_filter.py`, in sync since 327a318), ledger `strategies/trend_filter_state.json`; `docker compose up -d --build` as root |
+| freqtrade | MemeSleeveV4 (V3's rules, SOL added), 4h, DOGE PEPE SHIB FLOKI SOL /USDT, Binance spot, stake 25 USDT, max 3 | DRY RUN; V3 ran 2026-10-30 21:26 to 2026-11-03 12:06 UTC with 0 trades; V4 since 2026-11-03 12:06 UTC (log: strategy V4, max_open_trades 3, whitelist 5 pairs, no errors); Telegram alerts on | Strategy, pairs and max_open_trades are in `/root/freqtrade/config.json` (root only; backup before V4: `config.json.bak-20261103-pre-v4`). `sudo ft-swap-strategy` allows only V1/2/3, so V4 was set as root. `user_data/backtest_config.json` is the secrets free mirror (V4, 5 pairs, max 3 since 3 Nov; previous copy `~claude-ops/backtest_config.bak-20261103-pre-v4.json`); to reproduce V3 runs pass `--strategy MemeSleeveV3 --pairs DOGE/USDT PEPE/USDT SHIB/USDT FLOKI/USDT --max-open-trades 2`. |
+| lumibot | TrendFilter: SPY and QQQ, hold while last completed close > SMA200 (1% band), monthly check, fractional shares, $1,000 sleeve inside a $100k paper account, Telegram alerts | PAPER since 2026-10-30 21:54 UTC; rebuilt 2026-11-01 10:43 UTC with the state file fix (d47dd0b), restarts 0, ledger loaded `{'realized': 0.0, 'pos': {}}`, first check 2026-11-02 14:31 UTC: ledger reconciled at 0/0, both above SMA200, bought 0.645 SPY @ 759.36 and 0.705 QQQ @ 695.14 (both filled, no rejects, no `.invalid` file) | config `/root/lumibot/config.json` (root), strategy `/root/lumibot/strategies/trend_filter.py` (repo copy `fixes/alpaca/strategies/trend_filter.py`, in sync since 327a318), ledger `strategies/trend_filter_state.json`; `docker compose up -d --build` as root |
 | trading-dashboard | Streamlit dashboard, 10 tabs (Freqtrade, Alpaca, Stock Check, Robinhood, Risk, Performance, Strategies, Trades, Health, Signals; deployed 2026-11-01 10:53 UTC from 8c845bd, data and CRT tests passed in the image, rollback image deploy-dashboard:pre-20261101), reads the dry run sqlite, the Lumibot ledger and config, Yahoo daily data for the Stock Check tab | on 127.0.0.1:8501 and 100.99.81.45:8501 (Tailscale) | `cd /root/trading-ops && git pull --ff-only origin main && docker compose -f deploy/docker-compose.dashboard.yml up -d --build` as root |
 | weekly-audit (cron, Sunday 06:17 UTC) | read only audit by `claude -p`, report to Telegram and `~/trading_fixes/results/weekly/` | first run verified 2026-11-01 06:17 UTC: report `~/trading_fixes/results/weekly/2026-11-01.md` written, Telegram message arrived (Abdullah confirmed) | `/usr/local/sbin/weekly-audit` as root |
 
@@ -32,8 +32,8 @@ Repository: `github.com/i3baid-cpu/trading-ops` (private), cloned at `/root/trad
   it out of moves. Rejected. `results/freqtrade_v2_regimes.md`.
 * MemeSleeveV3 (4h breakout, BTC daily EMA100 gate, trailing 10% after +20%): +4.8% in sample (PF 1.34,
   152 trades), +0.4% in the not truly held out year (PF 1.19, 26 trades), p values 0.16 and 0.75. In position
-  18 of 18 full rising months, out of 8 of 9 falling months. Running as a forward test only. No V4 tuning until
-  at least 4 weekly reports exist. `results/freqtrade_v3.md`. No V3 trades yet: the gate was shut on the 30 and
+  18 of 18 full rising months, out of 8 of 9 falling months. Ran as a forward test from 30 Oct to 3 Nov and made
+  no trades; replaced by V4 (below). `results/freqtrade_v3.md`. Why no V3 trades: the gate was shut on the 30 and
   31 Oct closes (−0.57%, −0.29%) and reopened on the 1 Nov close (+0.69%, 78,354 vs EMA100 77,819); as of the
   2 Nov 08:00 4h candle no pair is above its 20 bar high, and DOGE, SHIB, FLOKI are below EMA50.
   `results/v3_gate_check_2026-11-02.md`, rerun with `python3 -I scripts/v3_gate_check.py`.
@@ -57,12 +57,22 @@ Repository: `github.com/i3baid-cpu/trading-ops` (private), cloned at `/root/trad
   closed candles, NO SETUP veto on reward to risk, sizing in fils for Kuwaiti prices, a swing Stock read, a long
   term weekly read with a 3 tranche plan, Yahoo fundamentals, and a signal log (`results/crt/crt_log.csv`) that
   must reach 30 resolved signals before any rule is changed. Rules in `docs/CRT_RULES_v2.md`.
+* SOL / V4 study (2 Nov, run as claude-ops with `docker run`, which Abdullah approved for this study; plan
+  `docs/RESEARCH_V4_PLAN.md`): V3 unchanged is profitable on the unseen 2020-08 to 2023-10 window on every coin and
+  as a basket (+58 USDT, PF 1.46), but far below holding the coins. Of the 6 pre-declared variants, variant 5 (memes
+  + SOL, max 3 open trades) won on window A (+79.4 USDT, PF 1.64) and held on B (+82.6, PF 1.38 vs V3's +52.1, PF 1.32);
+  it passed fee 0.2%, 15m detail, ±25% neighbours and lookahead. Most of the gain is SOL; the third slot only adds
+  capital. Profit comes from bull years (2021, 2024); about +25 USDT a year at 25 USDT stakes. It is a `config.json`
+  change (SOL in the whitelist, max_open_trades 3), not new code, so no `MemeSleeveV4.py` was written.
+  `results/research_v4_sol.md`.
+* MemeSleeveV4 (3 Nov, Abdullah's decision): the dry run moved to variant 5 now instead of after 4 weekly reports,
+  because V3 had no trades to review. `fixes/freqtrade/MemeSleeveV4.py` is V3's code with only the class name and
+  header changed, so its trades are labelled V4; SOL and max_open_trades 3 are in `config.json`. Dashboard, gate
+  script and /gate /status commands follow V4. Real money still needs his written approval.
 
 ## Open items, in order
-1. Monday 2 Nov after 14:30 UTC: confirm TrendFilter's first monthly check in the lumibot logs and Telegram.
-   Expect `Reconciled ledger with broker: SPY qty 0.0, QQQ qty 0.0` first, then the signal lines, and no
-   `trend_filter_state.json.invalid`. If orders were rejected, read `strategies/trend_filter.py` and the Alpaca
-   error before changing anything.
+1. TrendFilter's first check ran 2 Nov 14:31 UTC and both buys filled (logs). Abdullah to confirm the Telegram alert
+   arrived; then this item closes.
 2. claude-ops is in the `docker` group (gid 983, found 1 Nov), which is root equivalent. Decision for Abdullah:
    remove it (`gpasswd -d claude-ops docker` as root, then add sudo rules for the read only lumibot commands
    Claude Code needs: `docker ps`, `docker logs --tail 200 lumibot`) or accept it knowingly.
@@ -74,9 +84,10 @@ Repository: `github.com/i3baid-cpu/trading-ops` (private), cloned at `/root/trad
    3 · Stock Check with Horizon = Long term; the swing read on 29 Oct said DOWNTREND, RSI 29, support 2671.
 6. Nice to have: watchlist mode in tab 3 · Stock Check (his Kuwaiti holdings KFH, BOURSA, WARBABANK, AZNOULA, ALG, BPCC);
    fill times in the Lumibot ledger; cancelled order alerts for Alpaca.
-7. SOL / V4 research study, approved by Abdullah 2 Nov: run it as claude-ops following `docs/RESEARCH_V4_PLAN.md`
-   (V3 unchanged on the unseen 2020-08 to 2023-10 window first, at most 6 pre-declared variants, results in
-   `results/research_v4_sol.md`). Research only; the live bot keeps V3.
+7. V4 forward test (since 2026-11-03 12:06 UTC): review after 4 weekly reports (first possible about 1 Dec), against
+   the study's numbers in `results/research_v4_sol.md`. Optional root change: add MemeSleeveV4 to the sudo swap rule
+   so a later swap does not need root. Rollback to V3 meanwhile: restore `config.json.bak-20261103-pre-v4` as root
+   and restart.
 8. On 2 Nov a Claude Code session ran as root, not claude-ops (git had no root identity; files it created in
    `/root/trading-ops` are root owned). Start sessions with `su - claude-ops`, then `cd ~/trading-ops && claude`.
 

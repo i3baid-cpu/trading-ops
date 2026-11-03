@@ -40,6 +40,9 @@ LUMIBOT_CONFIG = os.environ.get("LUMIBOT_CONFIG", "/live/lumibot/config.json")
 # so V1 trades opened before the switch stay V1 even when V3 closed them (ids 24 and 25, exit trend_lost_4h).
 V3_START = pd.Timestamp("2026-10-30 21:26", tz="UTC")
 V3_NOTE = "forward test; backtest positive but not statistically significant (PF 1.34 in sample, 26 trades held out)"
+# MemeSleeveV4 (V3's rules, SOL added, 3 open trades) replaced V3 at this time; V3 made no trades.
+V4_START = pd.Timestamp("2026-11-03 12:06", tz="UTC")
+V4_NOTE = "forward test of study variant 5; profitable on unseen 2020-23 data (PF 1.64) and on 2023-26 (PF 1.38)"
 ALPACA_STRATEGY = "TrendFilter (daily, paper)"
 NO_PAPER_TRADES = "no paper trades yet"
 
@@ -156,7 +159,7 @@ def build_freqtrade_trades() -> pd.DataFrame:
                          for s, tag in zip(t["strategy"], t["enter_tag"].fillna(""))],
         "status": np.where(is_open, "open", "closed"),
         "stop_price": t["initial_stop_loss"],
-        "note": ["" if o < V3_START else f"MemeSleeveV3 {V3_NOTE}" for o in t["open_date"]],
+        "note": [{"MemeSleeveV3": f"MemeSleeveV3 {V3_NOTE}", "MemeSleeveV4": f"MemeSleeveV4 {V4_NOTE}"}.get(s, "") for s in t["strategy"]],
         "source_label": "DRY-RUN (simulated fills)",
     })
     df["duration"] = df["exit_time"] - df["entry_time"]
@@ -212,7 +215,7 @@ def load_freqtrade_config() -> dict:
     """show_config snapshot, overridden by FT_CONFIG where the file has the field."""
     snap = D._read_json("freqtrade_config.json")
     cfg = _read_json_file(FT_CONFIG) or {}
-    live = {k: cfg[k] for k in ("dry_run", "stake_currency", "stake_amount", "max_open_trades", "trading_mode",
+    live = {k: cfg[k] for k in ("strategy", "timeframe", "dry_run", "stake_currency", "stake_amount", "max_open_trades", "trading_mode",
                                 "margin_mode", "unfilledtimeout", "entry_pricing", "exit_pricing", "bot_name") if k in cfg}
     if isinstance(cfg.get("exchange"), dict) and cfg["exchange"].get("name"):
         live["exchange"] = cfg["exchange"]["name"]

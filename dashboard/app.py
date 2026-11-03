@@ -452,8 +452,8 @@ with tabs[T_STRAT]:
     st.markdown(html, unsafe_allow_html=True)
     st.markdown("#### Strategy comparison <span class='src'>metrics recomputed from the trade records in the current filter; Alpaca and CRT rows come from reported figures or have no trades</span>", unsafe_allow_html=True)
     if D.LIVE:
-        st.caption(f"MemeSleeveV3 (4h, dry-run): {DL.V3_NOTE}. Its row only counts trades it opened after "
-                   f"{DL.V3_START:%Y-%m-%d %H:%M} UTC; V1 trades it closed stay in the V1 row.")
+        st.caption(f"MemeSleeveV4 (4h, dry-run, since {DL.V4_START:%Y-%m-%d %H:%M} UTC): {DL.V4_NOTE}. MemeSleeveV3 ran from "
+                   f"{DL.V3_START:%Y-%m-%d %H:%M} UTC with no trades. Rows follow the strategy recorded at entry, so V1 trades V3 closed stay in the V1 row.")
     tbl = D.strategy_table(T)
     tbl_show = tbl.copy()
     tbl_show["Avg hold"] = tbl_show["Avg hold"].map(D.fmt_td)

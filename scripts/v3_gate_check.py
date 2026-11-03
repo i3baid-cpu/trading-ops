@@ -1,4 +1,4 @@
-"""Read-only MemeSleeveV3 gate check from Binance public klines (no keys). Mirrors MemeSleeveV3.py logic."""
+"""Read-only MemeSleeveV4 (V3's rules) gate check from Binance public klines (no keys). Mirrors MemeSleeveV3.py / MemeSleeveV4.py logic."""
 import json, sqlite3, sys, time, urllib.request
 from datetime import datetime, timezone
 
@@ -41,7 +41,7 @@ btc_up = {r["t"]: int(r["c"] > e) for r, e in zip(btc, be) if e is not None}
 DAY = 86400000
 L = []
 p = L.append
-p("# MemeSleeveV3 gate check\n")
+p("# MemeSleeveV4 gate check (V3's rules, SOL added)\n")
 p(f"Generated {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M')} UTC. Completed candles only.\n")
 p("## BTC daily gate\n")
 p("| Daily candle | Close | EMA100 | Close vs EMA100 | Gate |\n|---|---|---|---|---|")
@@ -52,7 +52,7 @@ p(f"\nBTC 1d history used: {len(btc)} candles from {ts(btc[0]['t'])[:10]} to {ts
 
 summary = []
 detail = []
-for pair in ["DOGE", "PEPE", "SHIB", "FLOKI"]:
+for pair in ["DOGE", "PEPE", "SHIB", "FLOKI", "SOL"]:
     sym = "PEPEUSDT" if pair == "PEPE" else f"{pair}USDT"
     d = klines(sym, "4h", now_ms - 1000 * 4 * 3600 * 1000)
     closes = [r["c"] for r in d]
@@ -89,10 +89,11 @@ c = sqlite3.connect("file:/root/freqtrade/user_data/tradesv3.dryrun.sqlite?mode=
 op = c.execute("select id,pair,strategy,open_date,open_rate from trades where is_open=1").fetchall()
 p("\n## Dry run: open trades\n")
 p("\n".join(f"- {x}" for x in op) if op else "_None._")
-n = c.execute("select count(*) from trades where strategy='MemeSleeveV3'").fetchone()[0]
-p(f"\nMemeSleeveV3 trades in the dry run database, all time: {n}.")
+for s in ("MemeSleeveV3", "MemeSleeveV4"):
+    n = c.execute("select count(*) from trades where strategy=?", (s,)).fetchone()[0]
+    p(f"\n{s} trades in the dry run database, all time: {n}.")
 p("\n## Provenance\n")
-p("Data: Binance spot public klines API (no keys), BTCUSDT 1d from 2023-01-01, DOGE/PEPE/SHIB/FLOKI USDT 4h last 1000 candles.")
+p("Data: Binance spot public klines API (no keys), BTCUSDT 1d from 2023-01-01, DOGE/PEPE/SHIB/FLOKI/SOL USDT 4h last 1000 candles.")
 p("EMA computed TA-Lib style (SMA seed); BTC gate mapped to 4h candles as merge_informative_pair does (previous completed day).")
 p("Freqtrade's own data dir was not touched (claude-ops uses docker for read-only commands only).")
 p(f"Command: `python3 -I {sys.argv[0]}`")

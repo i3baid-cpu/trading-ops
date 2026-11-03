@@ -1,4 +1,4 @@
-"""Freqtrade tab: MemeSleeveV3 state, the BTC gate and per pair entry conditions recomputed from Yahoo data,
+"""Freqtrade tab: MemeSleeveV4 state, the BTC gate and per pair entry conditions recomputed from Yahoo data,
 recent trades and the dry run equity curve. Read only; Yahoo is used because the dashboard has no exchange access."""
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ import streamlit as st
 import charts as C
 import data as D
 
-PAIRS = {"DOGE": "DOGE-USD", "PEPE": "PEPE24478-USD", "SHIB": "SHIB-USD", "FLOKI": "FLOKI-USD"}
+PAIRS = {"DOGE": "DOGE-USD", "PEPE": "PEPE24478-USD", "SHIB": "SHIB-USD", "FLOKI": "FLOKI-USD", "SOL": "SOL-USD"}
 
 
 @st.cache_data(ttl=900, show_spinner=False)
@@ -33,7 +33,7 @@ def _ema(s: pd.Series, n: int) -> pd.Series:
 
 
 def gate_status() -> dict:
-    """BTC daily close vs EMA100 on completed days (same rule as MemeSleeveV3's informative filter)."""
+    """BTC daily close vs EMA100 on completed days (same rule as MemeSleeveV3/V4's informative filter)."""
     h = _yahoo("BTC-USD", "1y", "1d")
     if h is None or len(h) < 110:
         return {"ok": False, "note": "BTC daily data not available from Yahoo"}
@@ -92,8 +92,8 @@ def render(X, ALL, kpi, money, num, pct, tone_of, badge, TZ, fmt_time):
 
     if live:
         import data_live as DL
-        v3 = ft_all[ft_all["entry_time"] >= DL.V3_START]
-        st.markdown(f"<div class='panel'><span class='dot dry'></span> <b>MemeSleeveV3 forward test</b> since {DL.V3_START:%d %b %Y %H:%M} UTC · {len(v3)} V3 trade(s) so far · {DL.V3_NOTE}<br><span class='src'>V3 buys only while the BTC gate is open and a pair closes a 4h candle above its prior 20 bar high on above average volume; exits on two 4h closes below EMA50, the gate shutting, a 15% stop, or a 10% trailing stop after +20%. Silence while the gate is shut is the filter working.</span></div>", unsafe_allow_html=True)
+        v4 = ft_all[ft_all["strategy"].str.startswith("MemeSleeveV4")]
+        st.markdown(f"<div class='panel'><span class='dot dry'></span> <b>MemeSleeveV4 forward test</b> since {DL.V4_START:%d %b %Y %H:%M} UTC · {len(v4)} V4 trade(s) so far · {DL.V4_NOTE}<br><span class='src'>V4 is V3's rules on DOGE PEPE SHIB FLOKI plus SOL with 3 open trades; V3 ran from {DL.V3_START:%d %b} and made no trades. V4 buys only while the BTC gate is open and a pair closes a 4h candle above its prior 20 bar high on above average volume; exits on two 4h closes below EMA50, the gate shutting, a 15% stop, or a 10% trailing stop after +20%. Silence while the gate is shut is the filter working.</span></div>", unsafe_allow_html=True)
 
     st.markdown("<div class='src'>Two clocks: the BTC gate uses the last <b>completed daily</b> candle, so it updates once a day at 00:00 UTC (03:00 Kuwait) and shows yesterday's date until then. The pair checks below use the last <b>completed 4h</b> candle and update six times a day. A trade needs both: gate open on the daily, breakout on the 4h.</div>", unsafe_allow_html=True)
     rows = pair_rows()
