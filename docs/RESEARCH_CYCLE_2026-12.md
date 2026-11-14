@@ -52,3 +52,13 @@ Only a candidate passing the binding bar on A and B qualifies for the pre-regist
 Commit and publish `results/research_2026-12.md` with full commands, original/candidate data hashes, all A results including losers, B confirmation if eligible, stress tables if eligible, observed vs hypothesized effects, accounting and execution caveats, and a clear pass/fail. Store logs and sanitized metadata only: **no credentials, API keys, real account data, or secret configuration**.
 
 A passing historical research candidate earns consideration for a new forward *dry run* only after Abdullah's explicit written approval and the current V4 weekly-review condition. This document authorizes **no backtests in this session and no deployment**.
+
+## Addendum (clarifications before the first run; the bar is unchanged)
+
+Added on 2026-11-14 with Abdullah's approval ("Apply"), before any December candidate was implemented or run. Source: `results/fable_review_2026-11-14.md`. Nothing above this line is altered.
+
+1. Winner stress fails if any stress run, on either window, has profit at or below zero, profit factor at or below 1.2, or profit without the best two months at or below zero; or lookahead analysis reports any bias; or recursive analysis shows a signal indicator changing by more than 1% at the registered startup count.
+2. All bar comparisons use Freqtrade's printed values (profit factor and drawdown to two decimals).
+3. One download on or after 1 December; checksums taken once; gate, window A and window B all run on that snapshot.
+4. If the window A winner fails on window B, the cycle ends. No second candidate is run on B.
+5. The window B baseline is rerun on 20231030-20261201 and will differ from the 30 October figures.
