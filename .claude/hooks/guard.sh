@@ -18,6 +18,8 @@ echo "$cmd" | grep -Eq '(^|[[:space:]/])\.env([[:space:]]|$)|/root/freqtrade/con
 echo "$cmd" | grep -Eiq 'dry_run["'"'"']?[[:space:]]*:[[:space:]]*false|"paper"[[:space:]]*:[[:space:]]*false|forceenter|forceexit|forcebuy|forcesell' && \
   block "would enable live trading or place an order"
 # 4. force pushes and history rewrites
-echo "$cmd" | grep -Eq 'git[[:space:]]+push.*(--force|-f[[:space:]])|git[[:space:]]+reset[[:space:]]+--hard|git[[:space:]]+rebase' && \
+# git with any number of leading -c/-C/--git-dir style options before the verb
+echo "$cmd" | grep -Eq 'git([[:space:]]+-[-A-Za-z]+([=[:space:]][^[:space:]]+)?)*[[:space:]]+(push.*(--force|-f([[:space:]]|$))|reset[[:space:]]+--hard|rebase|filter-branch|commit[[:space:]]+--amend)' && \
   block "rewrites git history"
+echo "$cmd" | grep -Eq 'pull[[:space:]].*--rebase' && block "rebase via pull"
 exit 0
