@@ -12,3 +12,4 @@ logs/
 dashboard/screenshots/
 # the live Freqtrade config holds keys; only secrets-free copies belong here
 freqtrade_config_live.json
+data/klines/

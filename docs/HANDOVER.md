@@ -108,6 +108,12 @@ Repository: `github.com/i3baid-cpu/trading-ops` (private), cloned at `/root/trad
    days: average gap, its spread, and the correlation of daily changes. If the gap is stable, consider correcting the
    panel's KWD price for it; if it is not, find out why (timing, futures premium, FX source) before using either.
 
+* Grid study (14 Nov, Abdullah's decision: he wants to deploy new capital, target $600 a year, and asked whether a grid bot
+  can do it): plan `docs/RESEARCH_GRID_PLAN.md` fixed before testing, simulator `scripts/grid_backtest.py` with
+  accounting tests in `scripts/tests/test_grid.py`. Six fixed candidates on BTC/ETH, unseen window A first, inventory
+  marked to market always. Output goes to `results/research_grid.md`. Capital decision stays his; nothing deploys
+  without a one month dry run.
+
 ## How to work with Abdullah
 * He is often on an iPad: give commands he can paste, one block at a time, and say which user runs them.
   `su - claude-ops` swallows any lines pasted after it; send it alone.
