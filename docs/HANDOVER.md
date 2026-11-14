@@ -125,6 +125,13 @@ Repository: `github.com/i3baid-cpu/trading-ops` (private), cloned at `/root/trad
   candidates, unseen window first, bar, stress, forward test). First cycle pre-registered in
   `docs/RESEARCH_CYCLE_2026-11.md`: five single-change variants of V4 (gate hysteresis, volume 0.8x, AVAX+LINK, 2h
   timeframe, two stage exit). Research runs now; promotion waits for the 1 Dec V4 review unless V4 is losing.
+  **Result (14 Nov, `results/research_2026-11.md`): none passes on window A, so no V5, no stress test, no window B.**
+  V4 continues unchanged. The closest is 2h (V4c): PF 1.80 against 1.64, +104.9 against +79.4 USDT, but drawdown 2.61%
+  against 2.55% on the pre-registered "account underwater" measure. On the balance measure it is better (2.62% against
+  2.81%). The others miss PF ≥ 1.74: hysteresis 1.63, volume 0.8x 1.68, AVAX+LINK 1.34, two stage exit 1.60.
+  Open for the December cycle (Abdullah's call): carry V4c forward with the drawdown measure and any tolerance fixed
+  in advance, and decide whether EMA, volume mean and cooldown also double on 2h. V4a to V4d sit in
+  `user_data/strategies` as research files only.
 
 ## How to work with Abdullah
 * He is often on an iPad: give commands he can paste, one block at a time, and say which user runs them.

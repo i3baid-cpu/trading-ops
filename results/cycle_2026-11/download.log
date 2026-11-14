@@ -1,0 +1,191 @@
+++ docker run --rm -v /root/freqtrade/user_data:/freqtrade/user_data freqtradeorg/freqtrade:stable download-data --config /freqtrade/user_data/backtest_config.json --pairs BTC/USDT DOGE/USDT SHIB/USDT SOL/USDT PEPE/USDT FLOKI/USDT AVAX/USDT LINK/USDT --timeframes 4h 1d --timerange 20200101-
+2026-11-14 14:25:59,194 - freqtrade - INFO - freqtrade 2026.9
+2026-11-14 14:25:59,697 - numexpr.utils - INFO - NumExpr defaulting to 2 threads.
+2026-11-14 14:26:01,267 - freqtrade.configuration.load_config - INFO - Using config: /freqtrade/user_data/backtest_config.json ...
+2026-11-14 14:26:01,269 - freqtrade.loggers - INFO - Enabling colorized output.
+2026-11-14 14:26:01,269 - freqtrade.loggers - INFO - Logfile configured
+2026-11-14 14:26:01,269 - freqtrade.loggers - INFO - Verbosity set to 0
+2026-11-14 14:26:01,270 - freqtrade.configuration.configuration - INFO - Parameter --timerange detected: 20200101- ...
+2026-11-14 14:26:01,296 - freqtrade.configuration.configuration - INFO - Using user-data directory: /freqtrade/user_data ...
+2026-11-14 14:26:01,296 - freqtrade.configuration.configuration - INFO - Using data directory: /freqtrade/user_data/data/binance ...
+2026-11-14 14:26:01,297 - freqtrade.configuration.configuration - INFO - Using pairs ['BTC/USDT', 'DOGE/USDT', 'SHIB/USDT', 'SOL/USDT', 'PEPE/USDT', 'FLOKI/USDT', 'AVAX/USDT', 'LINK/USDT']
+2026-11-14 14:26:01,297 - freqtrade.configuration.configuration - INFO - timeframes --timeframes: ['4h', '1d']
+2026-11-14 14:26:01,297 - freqtrade.configuration.configuration - INFO - Filter trades by timerange: 20200101-
+2026-11-14 14:26:01,299 - freqtrade.exchange.check_exchange - INFO - Checking exchange...
+2026-11-14 14:26:01,310 - freqtrade.exchange.check_exchange - INFO - Exchange "binance" is officially supported by the Freqtrade development team.
+2026-11-14 14:26:01,310 - freqtrade.configuration.config_validation - INFO - Validating configuration ...
+2026-11-14 14:26:02,231 - freqtrade.exchange.exchange - INFO - Instance is running with dry_run enabled
+2026-11-14 14:26:02,231 - freqtrade.exchange.exchange - INFO - Using CCXT 4.5.84
+2026-11-14 14:26:02,239 - freqtrade.exchange.exchange - INFO - Using Exchange "Binance"
+2026-11-14 14:26:02,240 - freqtrade.resolvers.exchange_resolver - INFO - Using resolved exchange class 'Binance' ...
+2026-11-14 14:26:02,240 - freqtrade.exchange.exchange - INFO - Markets were not loaded. Loading them now..
+2026-11-14 14:26:03,857 - freqtrade.data.history.history_utils - INFO - About to download pairs: ['BTC/USDT', 'DOGE/USDT', 'SHIB/USDT', 'SOL/USDT', 'PEPE/USDT', 'FLOKI/USDT', 'AVAX/USDT', 
+'LINK/USDT'], intervals: ['4h', '1d'] to /freqtrade/user_data/data/binance
+2026-11-14 14:26:03,955 - freqtrade.data.history.history_utils - INFO - Download history data for "BTC/USDT", 4h, spot and store in /freqtrade/user_data/data/binance. From 2026-11-02T04:00:00 to now
+2026-11-14 14:26:04,291 - freqtrade.data.history.history_utils - INFO - Downloaded data for BTC/USDT, 4h, spot with length 74.
+2026-11-14 14:26:04,358 - freqtrade.data.history.history_utils - INFO - Download history data for "BTC/USDT", 1d, spot and store in /freqtrade/user_data/data/binance. From 2026-10-29T00:00:00 to now
+2026-11-14 14:26:04,640 - freqtrade.data.history.history_utils - INFO - Downloaded data for BTC/USDT, 1d, spot with length 16.
+2026-11-14 14:26:04,672 - freqtrade.data.history.history_utils - INFO - Download history data for "DOGE/USDT", 4h, spot and store in /freqtrade/user_data/data/binance. From 2026-10-31T20:00:00 to now
+2026-11-14 14:26:04,954 - freqtrade.data.history.history_utils - INFO - Downloaded data for DOGE/USDT, 4h, spot with length 82.
+2026-11-14 14:26:04,980 - freqtrade.data.history.history_utils - INFO - Download history data for "DOGE/USDT", 1d, spot and store in /freqtrade/user_data/data/binance. From 2020-01-01T00:00:00 to now
+2026-11-14 14:26:05,652 - freqtrade.data.history.history_utils - INFO - Downloaded data for DOGE/USDT, 1d, spot with length 2509.
+2026-11-14 14:26:05,678 - freqtrade.data.history.history_utils - INFO - SHIB/USDT, 4h, spot: Requested start date 2020-01-01 00:00:00 earlier than local data start date 2021-05-10 08:00:00. Use 
+`--prepend` to download data prior to 2021-05-10 08:00:00, or `--erase` to redownload all data.
+2026-11-14 14:26:05,679 - freqtrade.data.history.history_utils - INFO - Download history data for "SHIB/USDT", 4h, spot and store in /freqtrade/user_data/data/binance. From 2026-10-31T20:00:00 to now
+2026-11-14 14:26:05,983 - freqtrade.data.history.history_utils - INFO - Downloaded data for SHIB/USDT, 4h, spot with length 82.
+2026-11-14 14:26:06,013 - freqtrade.data.history.history_utils - INFO - Download history data for "SHIB/USDT", 1d, spot and store in /freqtrade/user_data/data/binance. From 2020-01-01T00:00:00 to now
+2026-11-14 14:26:06,331 - freqtrade.exchange.binance - INFO - Candle-data for SHIB/USDT available starting with 2021-05-10T00:00:00+00:00.
+2026-11-14 14:26:06,671 - freqtrade.data.history.history_utils - INFO - Downloaded data for SHIB/USDT, 1d, spot with length 2014.
+2026-11-14 14:26:06,697 - freqtrade.data.history.history_utils - INFO - SOL/USDT, 4h, spot: Requested start date 2020-01-01 00:00:00 earlier than local data start date 2020-08-11 04:00:00. Use 
+`--prepend` to download data prior to 2020-08-11 04:00:00, or `--erase` to redownload all data.
+2026-11-14 14:26:06,697 - freqtrade.data.history.history_utils - INFO - Download history data for "SOL/USDT", 4h, spot and store in /freqtrade/user_data/data/binance. From 2026-11-02T04:00:00 to now
+2026-11-14 14:26:06,985 - freqtrade.data.history.history_utils - INFO - Downloaded data for SOL/USDT, 4h, spot with length 74.
+2026-11-14 14:26:07,032 - freqtrade.data.history.history_utils - INFO - Download history data for "SOL/USDT", 1d, spot and store in /freqtrade/user_data/data/binance. From 2020-01-01T00:00:00 to now
+2026-11-14 14:26:07,336 - freqtrade.exchange.binance - INFO - Candle-data for SOL/USDT available starting with 2020-08-11T00:00:00+00:00.
+2026-11-14 14:26:07,668 - freqtrade.data.history.history_utils - INFO - Downloaded data for SOL/USDT, 1d, spot with length 2286.
+2026-11-14 14:26:07,683 - freqtrade.data.history.history_utils - INFO - PEPE/USDT, 4h, spot: Requested start date 2020-01-01 00:00:00 earlier than local data start date 2023-05-05 16:00:00. Use 
+`--prepend` to download data prior to 2023-05-05 16:00:00, or `--erase` to redownload all data.
+2026-11-14 14:26:07,683 - freqtrade.data.history.history_utils - INFO - Download history data for "PEPE/USDT", 4h, spot and store in /freqtrade/user_data/data/binance. From 2026-11-01T00:00:00 to now
+2026-11-14 14:26:07,978 - freqtrade.data.history.history_utils - INFO - Downloaded data for PEPE/USDT, 4h, spot with length 81.
+2026-11-14 14:26:07,993 - freqtrade.data.history.history_utils - INFO - Download history data for "PEPE/USDT", 1d, spot and store in /freqtrade/user_data/data/binance. From 2020-01-01T00:00:00 to now
+2026-11-14 14:26:08,307 - freqtrade.exchange.binance - INFO - Candle-data for PEPE/USDT available starting with 2023-05-05T00:00:00+00:00.
+2026-11-14 14:26:08,627 - freqtrade.data.history.history_utils - INFO - Downloaded data for PEPE/USDT, 1d, spot with length 1289.
+2026-11-14 14:26:08,655 - freqtrade.data.history.history_utils - INFO - FLOKI/USDT, 4h, spot: Requested start date 2020-01-01 00:00:00 earlier than local data start date 2023-05-05 16:00:00. Use 
+`--prepend` to download data prior to 2023-05-05 16:00:00, or `--erase` to redownload all data.
+2026-11-14 14:26:08,656 - freqtrade.data.history.history_utils - INFO - Download history data for "FLOKI/USDT", 4h, spot and store in /freqtrade/user_data/data/binance. From 2026-11-01T00:00:00 to now
+2026-11-14 14:26:08,948 - freqtrade.data.history.history_utils - INFO - Downloaded data for FLOKI/USDT, 4h, spot with length 81.
+2026-11-14 14:26:08,980 - freqtrade.data.history.history_utils - INFO - Download history data for "FLOKI/USDT", 1d, spot and store in /freqtrade/user_data/data/binance. From 2020-01-01T00:00:00 to now
+2026-11-14 14:26:09,798 - freqtrade.exchange.binance - INFO - Candle-data for FLOKI/USDT available starting with 2023-05-05T00:00:00+00:00.
+2026-11-14 14:26:10,134 - freqtrade.data.history.history_utils - INFO - Downloaded data for FLOKI/USDT, 1d, spot with length 1289.
+2026-11-14 14:26:10,143 - freqtrade.data.history.history_utils - INFO - Download history data for "AVAX/USDT", 4h, spot and store in /freqtrade/user_data/data/binance. From 2020-01-01T00:00:00 to now
+2026-11-14 14:26:10,439 - freqtrade.exchange.binance - INFO - Candle-data for AVAX/USDT available starting with 2020-09-22T04:00:00+00:00.
+2026-11-14 14:26:11,290 - freqtrade.data.history.history_utils - INFO - Downloaded data for AVAX/USDT, 4h, spot with length 13466.
+2026-11-14 14:26:11,316 - freqtrade.data.history.history_utils - INFO - Download history data for "AVAX/USDT", 1d, spot and store in /freqtrade/user_data/data/binance. From 2020-01-01T00:00:00 to now
+2026-11-14 14:26:11,617 - freqtrade.exchange.binance - INFO - Candle-data for AVAX/USDT available starting with 2020-09-22T00:00:00+00:00.
+2026-11-14 14:26:12,926 - freqtrade.data.history.history_utils - INFO - Downloaded data for AVAX/USDT, 1d, spot with length 2244.
+2026-11-14 14:26:12,941 - freqtrade.data.history.history_utils - INFO - Download history data for "LINK/USDT", 4h, spot and store in /freqtrade/user_data/data/binance. From 2020-01-01T00:00:00 to now
+2026-11-14 14:26:14,139 - freqtrade.data.history.history_utils - INFO - Downloaded data for LINK/USDT, 4h, spot with length 15056.
+2026-11-14 14:26:14,169 - freqtrade.data.history.history_utils - INFO - Download history data for "LINK/USDT", 1d, spot and store in /freqtrade/user_data/data/binance. From 2020-01-01T00:00:00 to now
+2026-11-14 14:26:14,823 - freqtrade.data.history.history_utils - INFO - Downloaded data for LINK/USDT, 1d, spot with length 2509.
+Timeframe             ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2/2 100% • 0:00:00 • 0:00:00
+Downloading LINK/USDT ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 8/8 100% • 0:00:10 • 0:00:00
+++ docker run --rm -v /root/freqtrade/user_data:/freqtrade/user_data freqtradeorg/freqtrade:stable download-data --config /freqtrade/user_data/backtest_config.json --pairs BTC/USDT DOGE/USDT SHIB/USDT SOL/USDT PEPE/USDT FLOKI/USDT AVAX/USDT LINK/USDT --timeframes 4h 1d --timerange 20200101- --prepend
+2026-11-14 14:26:16,844 - freqtrade - INFO - freqtrade 2026.9
+2026-11-14 14:26:17,326 - numexpr.utils - INFO - NumExpr defaulting to 2 threads.
+2026-11-14 14:26:18,623 - freqtrade.configuration.load_config - INFO - Using config: /freqtrade/user_data/backtest_config.json ...
+2026-11-14 14:26:18,625 - freqtrade.loggers - INFO - Enabling colorized output.
+2026-11-14 14:26:18,625 - freqtrade.loggers - INFO - Logfile configured
+2026-11-14 14:26:18,625 - freqtrade.loggers - INFO - Verbosity set to 0
+2026-11-14 14:26:18,626 - freqtrade.configuration.configuration - INFO - Parameter --timerange detected: 20200101- ...
+2026-11-14 14:26:18,637 - freqtrade.configuration.configuration - INFO - Using user-data directory: /freqtrade/user_data ...
+2026-11-14 14:26:18,637 - freqtrade.configuration.configuration - INFO - Using data directory: /freqtrade/user_data/data/binance ...
+2026-11-14 14:26:18,638 - freqtrade.configuration.configuration - INFO - Using pairs ['BTC/USDT', 'DOGE/USDT', 'SHIB/USDT', 'SOL/USDT', 'PEPE/USDT', 'FLOKI/USDT', 'AVAX/USDT', 'LINK/USDT']
+2026-11-14 14:26:18,638 - freqtrade.configuration.configuration - INFO - Prepend detected. Allowing data prepending.
+2026-11-14 14:26:18,639 - freqtrade.configuration.configuration - INFO - timeframes --timeframes: ['4h', '1d']
+2026-11-14 14:26:18,639 - freqtrade.configuration.configuration - INFO - Filter trades by timerange: 20200101-
+2026-11-14 14:26:18,640 - freqtrade.exchange.check_exchange - INFO - Checking exchange...
+2026-11-14 14:26:18,647 - freqtrade.exchange.check_exchange - INFO - Exchange "binance" is officially supported by the Freqtrade development team.
+2026-11-14 14:26:18,648 - freqtrade.configuration.config_validation - INFO - Validating configuration ...
+2026-11-14 14:26:19,236 - freqtrade.exchange.exchange - INFO - Instance is running with dry_run enabled
+2026-11-14 14:26:19,236 - freqtrade.exchange.exchange - INFO - Using CCXT 4.5.84
+2026-11-14 14:26:19,242 - freqtrade.exchange.exchange - INFO - Using Exchange "Binance"
+2026-11-14 14:26:19,243 - freqtrade.resolvers.exchange_resolver - INFO - Using resolved exchange class 'Binance' ...
+2026-11-14 14:26:19,243 - freqtrade.exchange.exchange - INFO - Markets were not loaded. Loading them now..
+2026-11-14 14:26:20,794 - freqtrade.data.history.history_utils - INFO - About to download pairs: ['BTC/USDT', 'DOGE/USDT', 'SHIB/USDT', 'SOL/USDT', 'PEPE/USDT', 'FLOKI/USDT', 'AVAX/USDT', 
+'LINK/USDT'], intervals: ['4h', '1d'] to /freqtrade/user_data/data/binance
+2026-11-14 14:26:20,822 - freqtrade.data.history.history_utils - INFO - Download history data for "BTC/USDT", 4h, spot and store in /freqtrade/user_data/data/binance. From 2020-01-01T00:00:00 to 
+2020-01-01T00:00:00
+2026-11-14 14:26:20,827 - freqtrade.data.history.history_utils - INFO - Downloaded data for BTC/USDT, 4h, spot with length 0.
+2026-11-14 14:26:20,952 - freqtrade.data.history.history_utils - INFO - Download history data for "BTC/USDT", 1d, spot and store in /freqtrade/user_data/data/binance. From 2020-01-01T00:00:00 to 
+2020-01-01T00:00:00
+2026-11-14 14:26:20,957 - freqtrade.data.history.history_utils - INFO - Downloaded data for BTC/USDT, 1d, spot with length 0.
+2026-11-14 14:26:20,988 - freqtrade.data.history.history_utils - INFO - Download history data for "DOGE/USDT", 4h, spot and store in /freqtrade/user_data/data/binance. From 2020-01-01T00:00:00 to 
+2020-01-01T00:00:00
+2026-11-14 14:26:20,993 - freqtrade.data.history.history_utils - INFO - Downloaded data for DOGE/USDT, 4h, spot with length 0.
+2026-11-14 14:26:21,111 - freqtrade.data.history.history_utils - INFO - Download history data for "DOGE/USDT", 1d, spot and store in /freqtrade/user_data/data/binance. From 2020-01-01T00:00:00 to 
+2020-01-01T00:00:00
+2026-11-14 14:26:21,116 - freqtrade.data.history.history_utils - INFO - Downloaded data for DOGE/USDT, 1d, spot with length 0.
+2026-11-14 14:26:21,155 - freqtrade.data.history.history_utils - INFO - Download history data for "SHIB/USDT", 4h, spot and store in /freqtrade/user_data/data/binance. From 2020-01-01T00:00:00 to 
+2021-05-10T08:00:00
+2026-11-14 14:26:22,012 - freqtrade.data.history.history_utils - INFO - Downloaded data for SHIB/USDT, 4h, spot with length 999.
+2026-11-14 14:26:22,049 - freqtrade.data.history.history_utils - INFO - Download history data for "SHIB/USDT", 1d, spot and store in /freqtrade/user_data/data/binance. From 2020-01-01T00:00:00 to 
+2021-05-10T00:00:00
+2026-11-14 14:26:22,366 - freqtrade.data.history.history_utils - INFO - Downloaded data for SHIB/USDT, 1d, spot with length 999.
+2026-11-14 14:26:22,394 - freqtrade.data.history.history_utils - INFO - Download history data for "SOL/USDT", 4h, spot and store in /freqtrade/user_data/data/binance. From 2020-01-01T00:00:00 to 
+2020-08-11T04:00:00
+2026-11-14 14:26:23,251 - freqtrade.data.history.history_utils - INFO - Downloaded data for SOL/USDT, 4h, spot with length 999.
+2026-11-14 14:26:23,307 - freqtrade.data.history.history_utils - INFO - Download history data for "SOL/USDT", 1d, spot and store in /freqtrade/user_data/data/binance. From 2020-01-01T00:00:00 to 
+2020-08-11T00:00:00
+2026-11-14 14:26:23,622 - freqtrade.data.history.history_utils - INFO - Downloaded data for SOL/USDT, 1d, spot with length 999.
+2026-11-14 14:26:23,642 - freqtrade.data.history.history_utils - INFO - Download history data for "PEPE/USDT", 4h, spot and store in /freqtrade/user_data/data/binance. From 2020-01-01T00:00:00 to 
+2023-05-05T16:00:00
+2026-11-14 14:26:24,469 - freqtrade.data.history.history_utils - INFO - Downloaded data for PEPE/USDT, 4h, spot with length 999.
+2026-11-14 14:26:24,491 - freqtrade.data.history.history_utils - INFO - Download history data for "PEPE/USDT", 1d, spot and store in /freqtrade/user_data/data/binance. From 2020-01-01T00:00:00 to 
+2023-05-05T00:00:00
+2026-11-14 14:26:24,839 - freqtrade.data.history.history_utils - INFO - Downloaded data for PEPE/USDT, 1d, spot with length 999.
+2026-11-14 14:26:24,866 - freqtrade.data.history.history_utils - INFO - Download history data for "FLOKI/USDT", 4h, spot and store in /freqtrade/user_data/data/binance. From 2020-01-01T00:00:00 to 
+2023-05-05T16:00:00
+2026-11-14 14:26:25,788 - freqtrade.data.history.history_utils - INFO - Downloaded data for FLOKI/USDT, 4h, spot with length 999.
+2026-11-14 14:26:25,826 - freqtrade.data.history.history_utils - INFO - Download history data for "FLOKI/USDT", 1d, spot and store in /freqtrade/user_data/data/binance. From 2020-01-01T00:00:00 to 
+2023-05-05T00:00:00
+2026-11-14 14:26:26,164 - freqtrade.data.history.history_utils - INFO - Downloaded data for FLOKI/USDT, 1d, spot with length 999.
+2026-11-14 14:26:26,190 - freqtrade.data.history.history_utils - INFO - Download history data for "AVAX/USDT", 4h, spot and store in /freqtrade/user_data/data/binance. From 2020-01-01T00:00:00 to 
+2020-09-22T04:00:00
+2026-11-14 14:26:26,527 - freqtrade.data.history.history_utils - INFO - Downloaded data for AVAX/USDT, 4h, spot with length 999.
+2026-11-14 14:26:26,571 - freqtrade.data.history.history_utils - INFO - Download history data for "AVAX/USDT", 1d, spot and store in /freqtrade/user_data/data/binance. From 2020-01-01T00:00:00 to 
+2020-09-22T00:00:00
+2026-11-14 14:26:26,885 - freqtrade.data.history.history_utils - INFO - Downloaded data for AVAX/USDT, 1d, spot with length 999.
+2026-11-14 14:26:26,915 - freqtrade.data.history.history_utils - INFO - Download history data for "LINK/USDT", 4h, spot and store in /freqtrade/user_data/data/binance. From 2020-01-01T00:00:00 to 
+2020-01-01T00:00:00
+2026-11-14 14:26:26,922 - freqtrade.data.history.history_utils - INFO - Downloaded data for LINK/USDT, 4h, spot with length 0.
+2026-11-14 14:26:27,054 - freqtrade.data.history.history_utils - INFO - Download history data for "LINK/USDT", 1d, spot and store in /freqtrade/user_data/data/binance. From 2020-01-01T00:00:00 to 
+2020-01-01T00:00:00
+2026-11-14 14:26:27,060 - freqtrade.data.history.history_utils - INFO - Downloaded data for LINK/USDT, 1d, spot with length 0.
+Timeframe             ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2/2 100% • 0:00:00 • 0:00:00
+Downloading LINK/USDT ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 8/8 100% • 0:00:06 • 0:00:00
+++ docker run --rm -v /root/freqtrade/user_data:/freqtrade/user_data freqtradeorg/freqtrade:stable download-data --config /freqtrade/user_data/backtest_config.json --pairs BTC/USDT DOGE/USDT SHIB/USDT SOL/USDT PEPE/USDT FLOKI/USDT AVAX/USDT LINK/USDT --timeframes 2h --timerange 20200101-
+2026-11-14 14:26:29,116 - freqtrade - INFO - freqtrade 2026.9
+2026-11-14 14:26:29,700 - numexpr.utils - INFO - NumExpr defaulting to 2 threads.
+2026-11-14 14:26:31,215 - freqtrade.configuration.load_config - INFO - Using config: /freqtrade/user_data/backtest_config.json ...
+2026-11-14 14:26:31,217 - freqtrade.loggers - INFO - Enabling colorized output.
+2026-11-14 14:26:31,217 - freqtrade.loggers - INFO - Logfile configured
+2026-11-14 14:26:31,217 - freqtrade.loggers - INFO - Verbosity set to 0
+2026-11-14 14:26:31,217 - freqtrade.configuration.configuration - INFO - Parameter --timerange detected: 20200101- ...
+2026-11-14 14:26:31,237 - freqtrade.configuration.configuration - INFO - Using user-data directory: /freqtrade/user_data ...
+2026-11-14 14:26:31,237 - freqtrade.configuration.configuration - INFO - Using data directory: /freqtrade/user_data/data/binance ...
+2026-11-14 14:26:31,237 - freqtrade.configuration.configuration - INFO - Using pairs ['BTC/USDT', 'DOGE/USDT', 'SHIB/USDT', 'SOL/USDT', 'PEPE/USDT', 'FLOKI/USDT', 'AVAX/USDT', 'LINK/USDT']
+2026-11-14 14:26:31,238 - freqtrade.configuration.configuration - INFO - timeframes --timeframes: ['2h']
+2026-11-14 14:26:31,238 - freqtrade.configuration.configuration - INFO - Filter trades by timerange: 20200101-
+2026-11-14 14:26:31,239 - freqtrade.exchange.check_exchange - INFO - Checking exchange...
+2026-11-14 14:26:31,247 - freqtrade.exchange.check_exchange - INFO - Exchange "binance" is officially supported by the Freqtrade development team.
+2026-11-14 14:26:31,247 - freqtrade.configuration.config_validation - INFO - Validating configuration ...
+2026-11-14 14:26:32,160 - freqtrade.exchange.exchange - INFO - Instance is running with dry_run enabled
+2026-11-14 14:26:32,160 - freqtrade.exchange.exchange - INFO - Using CCXT 4.5.84
+2026-11-14 14:26:32,167 - freqtrade.exchange.exchange - INFO - Using Exchange "Binance"
+2026-11-14 14:26:32,168 - freqtrade.resolvers.exchange_resolver - INFO - Using resolved exchange class 'Binance' ...
+2026-11-14 14:26:32,168 - freqtrade.exchange.exchange - INFO - Markets were not loaded. Loading them now..
+2026-11-14 14:26:33,731 - freqtrade.data.history.history_utils - INFO - About to download pairs: ['BTC/USDT', 'DOGE/USDT', 'SHIB/USDT', 'SOL/USDT', 'PEPE/USDT', 'FLOKI/USDT', 'AVAX/USDT', 
+'LINK/USDT'], intervals: ['2h'] to /freqtrade/user_data/data/binance
+2026-11-14 14:26:33,760 - freqtrade.data.history.history_utils - INFO - Download history data for "BTC/USDT", 2h, spot and store in /freqtrade/user_data/data/binance. From 2020-01-01T00:00:00 to now
+2026-11-14 14:26:35,161 - freqtrade.data.history.history_utils - INFO - Downloaded data for BTC/USDT, 2h, spot with length 30105.
+2026-11-14 14:26:35,210 - freqtrade.data.history.history_utils - INFO - Download history data for "DOGE/USDT", 2h, spot and store in /freqtrade/user_data/data/binance. From 2020-01-01T00:00:00 to now
+2026-11-14 14:26:37,116 - freqtrade.data.history.history_utils - INFO - Downloaded data for DOGE/USDT, 2h, spot with length 30105.
+2026-11-14 14:26:37,148 - freqtrade.data.history.history_utils - INFO - Download history data for "SHIB/USDT", 2h, spot and store in /freqtrade/user_data/data/binance. From 2020-01-01T00:00:00 to now
+2026-11-14 14:26:37,462 - freqtrade.exchange.binance - INFO - Candle-data for SHIB/USDT available starting with 2021-05-10T10:00:00+00:00.
+2026-11-14 14:26:38,655 - freqtrade.data.history.history_utils - INFO - Downloaded data for SHIB/USDT, 2h, spot with length 24168.
+2026-11-14 14:26:38,686 - freqtrade.data.history.history_utils - INFO - Download history data for "SOL/USDT", 2h, spot and store in /freqtrade/user_data/data/binance. From 2020-01-01T00:00:00 to now
+2026-11-14 14:26:38,988 - freqtrade.exchange.binance - INFO - Candle-data for SOL/USDT available starting with 2020-08-11T06:00:00+00:00.
+2026-11-14 14:26:39,851 - freqtrade.data.history.history_utils - INFO - Downloaded data for SOL/USDT, 2h, spot with length 27430.
+2026-11-14 14:26:39,891 - freqtrade.data.history.history_utils - INFO - Download history data for "PEPE/USDT", 2h, spot and store in /freqtrade/user_data/data/binance. From 2020-01-01T00:00:00 to now
+2026-11-14 14:26:40,193 - freqtrade.exchange.binance - INFO - Candle-data for PEPE/USDT available starting with 2023-05-05T18:00:00+00:00.
+2026-11-14 14:26:41,063 - freqtrade.data.history.history_utils - INFO - Downloaded data for PEPE/USDT, 2h, spot with length 15466.
+2026-11-14 14:26:41,086 - freqtrade.data.history.history_utils - INFO - Download history data for "FLOKI/USDT", 2h, spot and store in /freqtrade/user_data/data/binance. From 2020-01-01T00:00:00 to now
+2026-11-14 14:26:41,377 - freqtrade.exchange.binance - INFO - Candle-data for FLOKI/USDT available starting with 2023-05-05T18:00:00+00:00.
+2026-11-14 14:26:41,987 - freqtrade.data.history.history_utils - INFO - Downloaded data for FLOKI/USDT, 2h, spot with length 15466.
+2026-11-14 14:26:42,005 - freqtrade.data.history.history_utils - INFO - Download history data for "AVAX/USDT", 2h, spot and store in /freqtrade/user_data/data/binance. From 2020-01-01T00:00:00 to now
+2026-11-14 14:26:42,314 - freqtrade.exchange.binance - INFO - Candle-data for AVAX/USDT available starting with 2020-09-22T06:00:00+00:00.
+2026-11-14 14:26:43,162 - freqtrade.data.history.history_utils - INFO - Downloaded data for AVAX/USDT, 2h, spot with length 26926.
+2026-11-14 14:26:43,220 - freqtrade.data.history.history_utils - INFO - Download history data for "LINK/USDT", 2h, spot and store in /freqtrade/user_data/data/binance. From 2020-01-01T00:00:00 to now
+2026-11-14 14:26:44,433 - freqtrade.data.history.history_utils - INFO - Downloaded data for LINK/USDT, 2h, spot with length 30105.
+Timeframe             ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1/1 100% • 0:00:01 • 0:00:00
+Downloading LINK/USDT ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 8/8 100% • 0:00:10 • 0:00:00
