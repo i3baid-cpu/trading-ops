@@ -43,7 +43,11 @@ inventory at the candle close. Returns are on total capital, including inventory
 4. BTC, R1, N=40, K2
 5. BTC, R2, N=20, K3
 6. ETH, R2, N=20, K2
-Also run, for context on both windows: holding BTC, holding ETH, holding USDT (0%), and V4's result if available.
+Also run, for context on both windows: holding BTC, holding ETH, holding USDT (0%), holding SPY (daily closes via
+yfinance, total return not available offline so price return), and V4's result if available. Stocks are not grid
+candidates: an index moves a third to a fifth as much as BTC, so a grid earns proportionally less, and overnight gaps
+jump across levels; the index line is there because for a steady dollar target an index position is the benchmark
+any grid must justify itself against.
 
 ## Stress test on the chosen variant
 Fee 0.2% per side; N ±50%; range width ±25%; results per calendar year; worst 90 day stretch; what the equity looked
