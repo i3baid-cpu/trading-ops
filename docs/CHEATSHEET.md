@@ -5,7 +5,7 @@ Two users. root = configs, secrets, compose, cron. claude-ops = Claude Code and 
 ## As root (aliases from /root/.bash_aliases)
 | Type | Does |
 |---|---|
-| `cc` | open Claude Code as claude-ops in ~/trading-ops (prints handover + status on start) |
+| `cops` | open Claude Code as claude-ops in ~/trading-ops (prints handover + status on start) |
 | `bots` | are freqtrade, lumibot, trading-dashboard up |
 | `ftlogs` / `allogs` / `dashlogs` | last log lines of each container |
 | `dashdeploy` | pull the repo and rebuild the dashboard now (cron also does this every 15 min) |
