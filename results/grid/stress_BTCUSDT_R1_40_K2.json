@@ -1,0 +1,847 @@
+{
+ "runs": [
+  {
+   "name": "chosen, window A",
+   "pair": "BTCUSDT",
+   "range": "R1",
+   "levels": 40,
+   "break": "K2",
+   "capital": 3000,
+   "fee": 0.001,
+   "window": [
+    "2020-08-15",
+    "2023-10-30"
+   ],
+   "final_equity": 3932.28,
+   "total_return_pct": 31.08,
+   "annualised_pct": 8.81,
+   "max_drawdown_pct": 29.6,
+   "realized_grid_profit": 3564.01,
+   "fees": 563.34,
+   "inventory_mtm_at_end": -2068.38,
+   "buy_and_hold_final": 8675.04,
+   "buy_and_hold_pct": 189.17,
+   "restarts": 23,
+   "best_quarter_share": 1.06,
+   "quarters": {
+    "2020Q3": 36.1,
+    "2020Q4": 165.9,
+    "2021Q1": 384.13,
+    "2021Q2": -177.77,
+    "2021Q3": 990.56,
+    "2021Q4": -119.95,
+    "2022Q1": -805.33,
+    "2022Q2": 0.0,
+    "2022Q3": 0.0,
+    "2022Q4": 0.0,
+    "2023Q1": 156.86,
+    "2023Q2": 122.52,
+    "2023Q3": -19.63,
+    "2023Q4": 198.89
+   },
+   "per_year": {
+    "2020": {
+     "start": 3000,
+     "end": 3201.99,
+     "pct": 6.73,
+     "usd": 201.99
+    },
+    "2021": {
+     "start": 3201.99,
+     "end": 4278.97,
+     "pct": 33.63,
+     "usd": 1076.97
+    },
+    "2022": {
+     "start": 4278.97,
+     "end": 3473.64,
+     "pct": -18.82,
+     "usd": -805.33
+    },
+    "2023": {
+     "start": 3473.64,
+     "end": 3932.28,
+     "pct": 13.2,
+     "usd": 458.65
+    }
+   },
+   "worst_90d": {
+    "pct": -25.84,
+    "from": "2021-12-01",
+    "to": "2022-03-01"
+   },
+   "at_2022_low": {
+    "date": "2022-11-21",
+    "coin_close": 15649.52,
+    "equity": 3473.64,
+    "inventory_value": 0.0,
+    "inventory_share_pct": 0.0,
+    "below_peak_pct": 26.34,
+    "hold_coin_equity": 3939.64
+   },
+   "window_name": "A",
+   "width_scale": 1.0
+  },
+  {
+   "name": "chosen, window B",
+   "pair": "BTCUSDT",
+   "range": "R1",
+   "levels": 40,
+   "break": "K2",
+   "capital": 3000,
+   "fee": 0.001,
+   "window": [
+    "2023-10-30",
+    "2026-10-30"
+   ],
+   "final_equity": 4083.61,
+   "total_return_pct": 36.12,
+   "annualised_pct": 10.82,
+   "max_drawdown_pct": 19.41,
+   "realized_grid_profit": 3143.94,
+   "fees": 606.08,
+   "inventory_mtm_at_end": -1454.25,
+   "buy_and_hold_final": 6725.37,
+   "buy_and_hold_pct": 124.18,
+   "restarts": 26,
+   "best_quarter_share": 0.56,
+   "quarters": {
+    "2023Q4": 14.79,
+    "2024Q1": 185.99,
+    "2024Q2": 95.05,
+    "2024Q3": 309.29,
+    "2024Q4": 195.1,
+    "2025Q1": 142.71,
+    "2025Q2": 612.1,
+    "2025Q3": 168.69,
+    "2025Q4": -672.15,
+    "2026Q1": 0.0,
+    "2026Q2": 0.0,
+    "2026Q3": 51.72,
+    "2026Q4": -19.68
+   },
+   "per_year": {
+    "2023": {
+     "start": 3000,
+     "end": 3014.79,
+     "pct": 0.49,
+     "usd": 14.79
+    },
+    "2024": {
+     "start": 3014.79,
+     "end": 3800.23,
+     "pct": 26.05,
+     "usd": 785.43
+    },
+    "2025": {
+     "start": 3800.23,
+     "end": 4051.58,
+     "pct": 6.61,
+     "usd": 251.35
+    },
+    "2026": {
+     "start": 4051.58,
+     "end": 4083.61,
+     "pct": 0.79,
+     "usd": 32.04
+    }
+   },
+   "worst_90d": {
+    "pct": -16.68,
+    "from": "2025-10-10",
+    "to": "2026-01-08"
+   },
+   "at_2022_low": null,
+   "window_name": "B",
+   "width_scale": 1.0
+  },
+  {
+   "name": "A, fee 0.2% per side",
+   "pair": "BTCUSDT",
+   "range": "R1",
+   "levels": 40,
+   "break": "K2",
+   "capital": 3000,
+   "fee": 0.002,
+   "window": [
+    "2020-08-15",
+    "2023-10-30"
+   ],
+   "final_equity": 3537.12,
+   "total_return_pct": 17.9,
+   "annualised_pct": 5.27,
+   "max_drawdown_pct": 30.52,
+   "realized_grid_profit": 3405.22,
+   "fees": 1065.85,
+   "inventory_mtm_at_end": -1802.24,
+   "buy_and_hold_final": 8675.04,
+   "buy_and_hold_pct": 189.17,
+   "restarts": 23,
+   "best_quarter_share": 1.67,
+   "quarters": {
+    "2020Q3": 1.61,
+    "2020Q4": 147.27,
+    "2021Q1": 363.69,
+    "2021Q2": -241.92,
+    "2021Q3": 898.78,
+    "2021Q4": -157.51,
+    "2022Q1": -765.1,
+    "2022Q2": 0.0,
+    "2022Q3": 0.0,
+    "2022Q4": 0.0,
+    "2023Q1": 116.71,
+    "2023Q2": 89.87,
+    "2023Q3": -77.38,
+    "2023Q4": 161.1
+   },
+   "per_year": {
+    "2020": {
+     "start": 3000,
+     "end": 3148.88,
+     "pct": 4.96,
+     "usd": 148.88
+    },
+    "2021": {
+     "start": 3148.88,
+     "end": 4011.92,
+     "pct": 27.41,
+     "usd": 863.04
+    },
+    "2022": {
+     "start": 4011.92,
+     "end": 3246.82,
+     "pct": -19.07,
+     "usd": -765.1
+    },
+    "2023": {
+     "start": 3246.82,
+     "end": 3537.12,
+     "pct": 8.94,
+     "usd": 290.3
+    }
+   },
+   "worst_90d": {
+    "pct": -26.4,
+    "from": "2021-12-01",
+    "to": "2022-03-01"
+   },
+   "at_2022_low": {
+    "date": "2022-11-21",
+    "coin_close": 15649.52,
+    "equity": 3246.82,
+    "inventory_value": 0.0,
+    "inventory_share_pct": 0.0,
+    "below_peak_pct": 26.89,
+    "hold_coin_equity": 3939.64
+   },
+   "window_name": "A",
+   "width_scale": 1.0
+  },
+  {
+   "name": "A, levels 20",
+   "pair": "BTCUSDT",
+   "range": "R1",
+   "levels": 20,
+   "break": "K2",
+   "capital": 3000,
+   "fee": 0.001,
+   "window": [
+    "2020-08-15",
+    "2023-10-30"
+   ],
+   "final_equity": 3827.73,
+   "total_return_pct": 27.59,
+   "annualised_pct": 7.9,
+   "max_drawdown_pct": 25.46,
+   "realized_grid_profit": 2511.78,
+   "fees": 201.75,
+   "inventory_mtm_at_end": -1482.31,
+   "buy_and_hold_final": 8675.04,
+   "buy_and_hold_pct": 189.17,
+   "restarts": 23,
+   "best_quarter_share": 1.1,
+   "quarters": {
+    "2020Q3": 31.84,
+    "2020Q4": 111.47,
+    "2021Q1": 332.4,
+    "2021Q2": -180.9,
+    "2021Q3": 912.35,
+    "2021Q4": -10.04,
+    "2022Q1": -742.98,
+    "2022Q2": 0.0,
+    "2022Q3": 0.0,
+    "2022Q4": 0.0,
+    "2023Q1": 132.17,
+    "2023Q2": 80.33,
+    "2023Q3": 46.26,
+    "2023Q4": 114.82
+   },
+   "per_year": {
+    "2020": {
+     "start": 3000,
+     "end": 3143.31,
+     "pct": 4.78,
+     "usd": 143.31
+    },
+    "2021": {
+     "start": 3143.31,
+     "end": 4197.12,
+     "pct": 33.53,
+     "usd": 1053.81
+    },
+    "2022": {
+     "start": 4197.12,
+     "end": 3454.15,
+     "pct": -17.7,
+     "usd": -742.98
+    },
+    "2023": {
+     "start": 3454.15,
+     "end": 3827.73,
+     "pct": 10.82,
+     "usd": 373.58
+    }
+   },
+   "worst_90d": {
+    "pct": -22.99,
+    "from": "2021-12-01",
+    "to": "2022-03-01"
+   },
+   "at_2022_low": {
+    "date": "2022-11-21",
+    "coin_close": 15649.52,
+    "equity": 3454.15,
+    "inventory_value": 0.0,
+    "inventory_share_pct": 0.0,
+    "below_peak_pct": 23.48,
+    "hold_coin_equity": 3939.64
+   },
+   "window_name": "A",
+   "width_scale": 1.0
+  },
+  {
+   "name": "A, levels 60",
+   "pair": "BTCUSDT",
+   "range": "R1",
+   "levels": 60,
+   "break": "K2",
+   "capital": 3000,
+   "fee": 0.001,
+   "window": [
+    "2020-08-15",
+    "2023-10-30"
+   ],
+   "final_equity": 3743.94,
+   "total_return_pct": 24.8,
+   "annualised_pct": 7.15,
+   "max_drawdown_pct": 29.81,
+   "realized_grid_profit": 3792.59,
+   "fees": 875.03,
+   "inventory_mtm_at_end": -2173.62,
+   "buy_and_hold_final": 8675.04,
+   "buy_and_hold_pct": 189.17,
+   "restarts": 23,
+   "best_quarter_share": 1.29,
+   "quarters": {
+    "2020Q3": 8.43,
+    "2020Q4": 173.11,
+    "2021Q1": 414.88,
+    "2021Q2": -301.18,
+    "2021Q3": 962.57,
+    "2021Q4": -104.17,
+    "2022Q1": -799.09,
+    "2022Q2": 0.0,
+    "2022Q3": 0.0,
+    "2022Q4": 0.0,
+    "2023Q1": 131.34,
+    "2023Q2": 125.85,
+    "2023Q3": -66.85,
+    "2023Q4": 199.04
+   },
+   "per_year": {
+    "2020": {
+     "start": 3000,
+     "end": 3181.55,
+     "pct": 6.05,
+     "usd": 181.55
+    },
+    "2021": {
+     "start": 3181.55,
+     "end": 4153.65,
+     "pct": 30.55,
+     "usd": 972.1
+    },
+    "2022": {
+     "start": 4153.65,
+     "end": 3354.56,
+     "pct": -19.24,
+     "usd": -799.09
+    },
+    "2023": {
+     "start": 3354.56,
+     "end": 3743.94,
+     "pct": 11.61,
+     "usd": 389.38
+    }
+   },
+   "worst_90d": {
+    "pct": -25.94,
+    "from": "2021-12-01",
+    "to": "2022-03-01"
+   },
+   "at_2022_low": {
+    "date": "2022-11-21",
+    "coin_close": 15649.52,
+    "equity": 3354.56,
+    "inventory_value": 0.0,
+    "inventory_share_pct": 0.0,
+    "below_peak_pct": 26.47,
+    "hold_coin_equity": 3939.64
+   },
+   "window_name": "A",
+   "width_scale": 1.0
+  },
+  {
+   "name": "A, range width x0.75",
+   "pair": "BTCUSDT",
+   "range": "R1",
+   "levels": 40,
+   "break": "K2",
+   "capital": 3000,
+   "fee": 0.001,
+   "window": [
+    "2020-08-15",
+    "2023-10-30"
+   ],
+   "final_equity": 2683.08,
+   "total_return_pct": -10.56,
+   "annualised_pct": -3.42,
+   "max_drawdown_pct": 34.28,
+   "realized_grid_profit": 2343.47,
+   "fees": 583.4,
+   "inventory_mtm_at_end": -2077.0,
+   "buy_and_hold_final": 8675.04,
+   "buy_and_hold_pct": 189.17,
+   "restarts": 20,
+   "best_quarter_share": -0.65,
+   "quarters": {
+    "2020Q3": 63.26,
+    "2020Q4": 101.66,
+    "2021Q1": 207.54,
+    "2021Q2": -615.97,
+    "2021Q3": 102.45,
+    "2021Q4": -82.18,
+    "2022Q1": -331.2,
+    "2022Q2": 0.0,
+    "2022Q3": 0.0,
+    "2022Q4": 0.0,
+    "2023Q1": 53.57,
+    "2023Q2": 69.41,
+    "2023Q3": 6.22,
+    "2023Q4": 108.31
+   },
+   "per_year": {
+    "2020": {
+     "start": 3000,
+     "end": 3164.92,
+     "pct": 5.5,
+     "usd": 164.92
+    },
+    "2021": {
+     "start": 3164.92,
+     "end": 2776.77,
+     "pct": -12.26,
+     "usd": -388.15
+    },
+    "2022": {
+     "start": 2776.77,
+     "end": 2445.57,
+     "pct": -11.93,
+     "usd": -331.2
+    },
+    "2023": {
+     "start": 2445.57,
+     "end": 2683.08,
+     "pct": 9.71,
+     "usd": 237.51
+    }
+   },
+   "worst_90d": {
+    "pct": -22.16,
+    "from": "2021-05-12",
+    "to": "2021-08-10"
+   },
+   "at_2022_low": {
+    "date": "2022-11-21",
+    "coin_close": 15649.52,
+    "equity": 2445.57,
+    "inventory_value": 0.0,
+    "inventory_share_pct": 0.0,
+    "below_peak_pct": 31.01,
+    "hold_coin_equity": 3939.64
+   },
+   "window_name": "A",
+   "width_scale": 0.75
+  },
+  {
+   "name": "A, range width x1.25",
+   "pair": "BTCUSDT",
+   "range": "R1",
+   "levels": 40,
+   "break": "K2",
+   "capital": 3000,
+   "fee": 0.001,
+   "window": [
+    "2020-08-15",
+    "2023-10-30"
+   ],
+   "final_equity": 3922.7,
+   "total_return_pct": 30.76,
+   "annualised_pct": 8.72,
+   "max_drawdown_pct": 31.23,
+   "realized_grid_profit": 3411.55,
+   "fees": 378.39,
+   "inventory_mtm_at_end": -2110.46,
+   "buy_and_hold_final": 8675.04,
+   "buy_and_hold_pct": 189.17,
+   "restarts": 23,
+   "best_quarter_share": 0.96,
+   "quarters": {
+    "2020Q3": -4.44,
+    "2020Q4": 207.3,
+    "2021Q1": 605.48,
+    "2021Q2": -280.29,
+    "2021Q3": 886.41,
+    "2021Q4": -38.8,
+    "2022Q1": -983.07,
+    "2022Q2": 0.0,
+    "2022Q3": 0.0,
+    "2022Q4": 0.0,
+    "2023Q1": 204.04,
+    "2023Q2": 154.73,
+    "2023Q3": -47.74,
+    "2023Q4": 219.08
+   },
+   "per_year": {
+    "2020": {
+     "start": 3000,
+     "end": 3202.85,
+     "pct": 6.76,
+     "usd": 202.85
+    },
+    "2021": {
+     "start": 3202.85,
+     "end": 4375.65,
+     "pct": 36.62,
+     "usd": 1172.8
+    },
+    "2022": {
+     "start": 4375.65,
+     "end": 3392.59,
+     "pct": -22.47,
+     "usd": -983.07
+    },
+    "2023": {
+     "start": 3392.59,
+     "end": 3922.7,
+     "pct": 15.63,
+     "usd": 530.11
+    }
+   },
+   "worst_90d": {
+    "pct": -29.23,
+    "from": "2021-11-15",
+    "to": "2022-02-13"
+   },
+   "at_2022_low": {
+    "date": "2022-11-21",
+    "coin_close": 15649.52,
+    "equity": 3392.59,
+    "inventory_value": 0.0,
+    "inventory_share_pct": 0.0,
+    "below_peak_pct": 29.24,
+    "hold_coin_equity": 3939.64
+   },
+   "window_name": "A",
+   "width_scale": 1.25
+  }
+ ],
+ "context": {
+  "holding": [
+   {
+    "what": "hold BTCUSDT",
+    "window": "A",
+    "final": 8675.04,
+    "pct": 189.17,
+    "annualised_pct": 39.26,
+    "max_drawdown_pct": 77.2,
+    "per_year": {
+     "2020": {
+      "start": 3000,
+      "end": 7281.29,
+      "pct": 142.71,
+      "usd": 4281.29
+     },
+     "2021": {
+      "start": 7281.29,
+      "end": 11634.74,
+      "pct": 59.79,
+      "usd": 4353.45
+     },
+     "2022": {
+      "start": 11634.74,
+      "end": 4164.42,
+      "pct": -64.21,
+      "usd": -7470.33
+     },
+     "2023": {
+      "start": 4164.42,
+      "end": 8675.04,
+      "pct": 108.31,
+      "usd": 4510.62
+     }
+    }
+   },
+   {
+    "what": "hold ETHUSDT",
+    "window": "A",
+    "final": 12268.56,
+    "pct": 308.95,
+    "annualised_pct": 55.16,
+    "max_drawdown_pct": 81.34,
+    "per_year": {
+     "2020": {
+      "start": 3000,
+      "end": 5037.53,
+      "pct": 67.92,
+      "usd": 2037.53
+     },
+     "2021": {
+      "start": 5037.53,
+      "end": 25147.51,
+      "pct": 399.2,
+      "usd": 20109.97
+     },
+     "2022": {
+      "start": 25147.51,
+      "end": 8182.21,
+      "pct": -67.46,
+      "usd": -16965.3
+     },
+     "2023": {
+      "start": 8182.21,
+      "end": 12268.56,
+      "pct": 49.94,
+      "usd": 4086.35
+     }
+    }
+   },
+   {
+    "what": "hold BTCUSDT",
+    "window": "B",
+    "final": 6725.37,
+    "pct": 124.18,
+    "annualised_pct": 30.87,
+    "max_drawdown_pct": 53.74,
+    "per_year": {
+     "2023": {
+      "start": 3000,
+      "end": 3681.1,
+      "pct": 22.7,
+      "usd": 681.1
+     },
+     "2024": {
+      "start": 3681.1,
+      "end": 8146.48,
+      "pct": 121.31,
+      "usd": 4465.39
+     },
+     "2025": {
+      "start": 8146.48,
+      "end": 7630.43,
+      "pct": -6.33,
+      "usd": -516.06
+     },
+     "2026": {
+      "start": 7630.43,
+      "end": 6725.37,
+      "pct": -11.86,
+      "usd": -905.06
+     }
+    }
+   },
+   {
+    "what": "hold ETHUSDT",
+    "window": "B",
+    "final": 3717.91,
+    "pct": 23.93,
+    "annualised_pct": 7.41,
+    "max_drawdown_pct": 69.15,
+    "per_year": {
+     "2023": {
+      "start": 3000,
+      "end": 3816.9,
+      "pct": 27.23,
+      "usd": 816.9
+     },
+     "2024": {
+      "start": 3816.9,
+      "end": 5583.13,
+      "pct": 46.27,
+      "usd": 1766.23
+     },
+     "2025": {
+      "start": 5583.13,
+      "end": 4970.68,
+      "pct": -10.97,
+      "usd": -612.44
+     },
+     "2026": {
+      "start": 4970.68,
+      "end": 3717.91,
+      "pct": -25.2,
+      "usd": -1252.77
+     }
+    }
+   }
+  ],
+  "spy": {
+   "A": {
+    "first": "2020-08-17",
+    "last": "2023-10-30",
+    "price": {
+     "final": 3689.65,
+     "pct": 22.99,
+     "annualised_pct": 6.68,
+     "max_drawdown_pct": 25.36,
+     "per_year": {
+      "2020": {
+       "start": 3000,
+       "end": 3319.35,
+       "pct": 10.64,
+       "usd": 319.35
+      },
+      "2021": {
+       "start": 3319.35,
+       "end": 4216.74,
+       "pct": 27.04,
+       "usd": 897.4
+      },
+      "2022": {
+       "start": 4216.74,
+       "end": 3395.25,
+       "pct": -19.48,
+       "usd": -821.49
+      },
+      "2023": {
+       "start": 3395.25,
+       "end": 3689.65,
+       "pct": 8.67,
+       "usd": 294.4
+      }
+     }
+    },
+    "total": {
+     "final": 3873.48,
+     "pct": 29.12,
+     "annualised_pct": 8.31,
+     "max_drawdown_pct": 24.5,
+     "per_year": {
+      "2020": {
+       "start": 3000,
+       "end": 3346.84,
+       "pct": 11.56,
+       "usd": 346.84
+      },
+      "2021": {
+       "start": 3346.84,
+       "end": 4308.34,
+       "pct": 28.73,
+       "usd": 961.51
+      },
+      "2022": {
+       "start": 4308.34,
+       "end": 3525.29,
+       "pct": -18.18,
+       "usd": -783.06
+      },
+      "2023": {
+       "start": 3525.29,
+       "end": 3873.48,
+       "pct": 9.88,
+       "usd": 348.19
+      }
+     }
+    }
+   },
+   "B": {
+    "first": "2023-10-30",
+    "last": "2026-10-29",
+    "price": {
+     "final": 5553.74,
+     "pct": 85.12,
+     "annualised_pct": 22.8,
+     "max_drawdown_pct": 19.0,
+     "per_year": {
+      "2023": {
+       "start": 3000,
+       "end": 3431.1,
+       "pct": 14.37,
+       "usd": 431.1
+      },
+      "2024": {
+       "start": 3431.1,
+       "end": 4230.71,
+       "pct": 23.3,
+       "usd": 799.61
+      },
+      "2025": {
+       "start": 4230.71,
+       "end": 4922.54,
+       "pct": 16.35,
+       "usd": 691.84
+      },
+      "2026": {
+       "start": 4922.54,
+       "end": 5553.74,
+       "pct": 12.82,
+       "usd": 631.2
+      }
+     }
+    },
+    "total": {
+     "final": 5758.74,
+     "pct": 91.96,
+     "annualised_pct": 24.3,
+     "max_drawdown_pct": 18.76,
+     "per_year": {
+      "2023": {
+       "start": 3000,
+       "end": 3445.01,
+       "pct": 14.83,
+       "usd": 445.01
+      },
+      "2024": {
+       "start": 3445.01,
+       "end": 4302.35,
+       "pct": 24.89,
+       "usd": 857.34
+      },
+      "2025": {
+       "start": 4302.35,
+       "end": 5064.69,
+       "pct": 17.72,
+       "usd": 762.34
+      },
+      "2026": {
+       "start": 5064.69,
+       "end": 5758.74,
+       "pct": 13.7,
+       "usd": 694.06
+      }
+     }
+    }
+   }
+  }
+ }
+}

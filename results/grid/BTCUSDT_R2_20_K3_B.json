@@ -1,0 +1,39 @@
+{
+ "pair": "BTCUSDT",
+ "range": "R2",
+ "levels": 20,
+ "break": "K3",
+ "capital": 3000,
+ "fee": 0.001,
+ "window": [
+  "2023-10-30",
+  "2026-10-30"
+ ],
+ "final_equity": 3236.51,
+ "total_return_pct": 7.88,
+ "annualised_pct": 2.56,
+ "max_drawdown_pct": 27.93,
+ "realized_grid_profit": 1281.49,
+ "fees": 284.4,
+ "inventory_mtm_at_end": -760.58,
+ "buy_and_hold_final": 6725.37,
+ "buy_and_hold_pct": 124.18,
+ "restarts": 398,
+ "best_quarter_share": 3.09,
+ "quarters": {
+  "2023Q4": 0.0,
+  "2024Q1": 0.0,
+  "2024Q2": 11.74,
+  "2024Q3": 141.92,
+  "2024Q4": 106.32,
+  "2025Q1": 106.61,
+  "2025Q2": 122.43,
+  "2025Q3": 13.71,
+  "2025Q4": -39.09,
+  "2026Q1": -663.92,
+  "2026Q2": -258.53,
+  "2026Q3": 730.58,
+  "2026Q4": -35.28
+ },
+ "window_name": "B"
+}

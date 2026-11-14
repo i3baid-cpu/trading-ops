@@ -113,6 +113,13 @@ Repository: `github.com/i3baid-cpu/trading-ops` (private), cloned at `/root/trad
   accounting tests in `scripts/tests/test_grid.py`. Six fixed candidates on BTC/ETH, unseen window A first, inventory
   marked to market always. Output goes to `results/research_grid.md`. Capital decision stays his; nothing deploys
   without a one month dry run.
+  **Result (14 Nov): fails the bar, no grid deployment.** None of the six passes on window A. The closest is BTC R1 N=40 K2:
+  +8.8% a year on A and +10.8% on B, but drawdown 29.6% (limit 25%), one quarter supplied all of A's net profit, and it
+  lost 18.8% in 2022. A 25% narrower range turns it into a loss. SPY total return matched it on A (8.3% a year, 24.5%
+  drawdown) and more than doubled it on B. On $3,000 it is about $260 to $320 a year. Open: `grid_backtest.py` has four
+  known flaws (recentre sale fee not charged, realised profit double counted, K3 ignored with R2, same candle fills),
+  measured in the report and none changes the verdict. They should be fixed before the simulator is reused, with
+  Abdullah's approval.
 
 ## How to work with Abdullah
 * He is often on an iPad: give commands he can paste, one block at a time, and say which user runs them.

@@ -1,0 +1,40 @@
+{
+ "pair": "ETHUSDT",
+ "range": "R1",
+ "levels": 20,
+ "break": "K1",
+ "capital": 3000,
+ "fee": 0.001,
+ "window": [
+  "2020-08-15",
+  "2023-10-30"
+ ],
+ "final_equity": 5158.99,
+ "total_return_pct": 71.97,
+ "annualised_pct": 18.42,
+ "max_drawdown_pct": 61.52,
+ "realized_grid_profit": 6972.21,
+ "fees": 338.64,
+ "inventory_mtm_at_end": -4474.58,
+ "buy_and_hold_final": 12268.56,
+ "buy_and_hold_pct": 308.95,
+ "restarts": 34,
+ "best_quarter_share": 0.7,
+ "quarters": {
+  "2020Q3": 115.77,
+  "2020Q4": 509.02,
+  "2021Q1": 416.16,
+  "2021Q2": 327.56,
+  "2021Q3": 1520.93,
+  "2021Q4": 588.76,
+  "2022Q1": -611.67,
+  "2022Q2": -2958.51,
+  "2022Q3": 1163.41,
+  "2022Q4": -91.17,
+  "2023Q1": 914.44,
+  "2023Q2": 133.88,
+  "2023Q3": -173.54,
+  "2023Q4": 303.95
+ },
+ "window_name": "A"
+}

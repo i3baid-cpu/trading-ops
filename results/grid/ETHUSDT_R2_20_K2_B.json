@@ -1,0 +1,39 @@
+{
+ "pair": "ETHUSDT",
+ "range": "R2",
+ "levels": 20,
+ "break": "K2",
+ "capital": 3000,
+ "fee": 0.001,
+ "window": [
+  "2023-10-30",
+  "2026-10-30"
+ ],
+ "final_equity": 2973.6,
+ "total_return_pct": -0.88,
+ "annualised_pct": -0.29,
+ "max_drawdown_pct": 18.23,
+ "realized_grid_profit": 1443.7,
+ "fees": 142.1,
+ "inventory_mtm_at_end": -1328.0,
+ "buy_and_hold_final": 3717.91,
+ "buy_and_hold_pct": 23.93,
+ "restarts": 297,
+ "best_quarter_share": -7.33,
+ "quarters": {
+  "2023Q4": 193.42,
+  "2024Q1": 14.61,
+  "2024Q2": 67.89,
+  "2024Q3": -87.35,
+  "2024Q4": 177.63,
+  "2025Q1": -340.81,
+  "2025Q2": 0.0,
+  "2025Q3": 31.95,
+  "2025Q4": 128.46,
+  "2026Q1": -242.79,
+  "2026Q2": 0.0,
+  "2026Q3": 4.44,
+  "2026Q4": 26.16
+ },
+ "window_name": "B"
+}
