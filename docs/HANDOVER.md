@@ -138,8 +138,8 @@ Repository: `github.com/i3baid-cpu/trading-ops` (private), cloned at `/root/trad
   engine; the open risks are live fills and the bot side stop. Grid: all 14 findings reproduce on the unchanged
   simulator (`scripts/tests/repro_grid_v1_findings.py` on the proposal branch); its numbers are unreliable in size, the
   no deploy verdict holds. December pre-registration: bar unchanged, five clarifications needed before the first run.
-  **Waiting for Abdullah:** (a) pull request 1, branch `proposal/fable-review-2026-11-14`: `scripts/grid_backtest_v2.py`
-  as a new file, tests, one dashboard caption line; do not merge without his written yes; (b) his rule for what fails
+  **Waiting for Abdullah:** (a) done: pull request 1 merged on 14 Nov with his approval (`scripts/grid_backtest_v2.py` as a new file,
+  tests, one dashboard caption line); (b) his rule for what fails
   the December winner stress, then the addendum to `docs/RESEARCH_CYCLE_2026-12.md`. **For the VPS agent after
   approval:** rerun the six grid candidates with version 2 into `results/research_grid_v2.md`; run `recursive-analysis`
   on V4 (never run so far); the V4 baseline reproduction stays the first step of December.
