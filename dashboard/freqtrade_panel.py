@@ -68,6 +68,30 @@ def pair_rows() -> list[dict]:
     return rows
 
 
+def opportunity_cost(start: pd.Timestamp, stake: float = 25.0) -> dict | None:
+    """What 'just holding' would have done: `stake` USDT of each pair bought at the first daily close after `start`,
+    valued at the last completed daily close (Yahoo). Read only; the comparison the dry run P&L is judged against."""
+    rows, total_now, total_cost = [], 0.0, 0.0
+    today = datetime.now(timezone.utc).date()
+    for name, sym in PAIRS.items():
+        h = _yahoo(sym, "6mo", "1d")
+        if h is None:
+            continue
+        h = h[h["date"].dt.date < today]
+        after = h[h["date"] >= start]
+        if after.empty:
+            continue
+        p0, p1 = float(after["close"].iloc[0]), float(h["close"].iloc[-1])
+        rows.append({"Pair": name, "Bought at": f"{p0:.6g}", "Now": f"{p1:.6g}", "Change": (p1 / p0 - 1) * 100,
+                     "P&L on 25 USDT": stake * (p1 / p0 - 1)})
+        total_now += stake * p1 / p0
+        total_cost += stake
+    if not rows:
+        return None
+    return {"rows": rows, "pnl": total_now - total_cost, "pct": (total_now / total_cost - 1) * 100,
+            "as_of": str(h["date"].iloc[-1].date()), "from": str(after["date"].iloc[0].date())}
+
+
 def render(X, ALL, kpi, money, num, pct, tone_of, badge, TZ, fmt_time):
     ft_all = ALL[ALL["system"] == "Freqtrade"]
     m_ft = D.compute_metrics(ft_all)
@@ -94,6 +118,24 @@ def render(X, ALL, kpi, money, num, pct, tone_of, badge, TZ, fmt_time):
         import data_live as DL
         v4 = ft_all[ft_all["strategy"].str.startswith("MemeSleeveV4")]
         st.markdown(f"<div class='panel'><span class='dot dry'></span> <b>MemeSleeveV4 forward test</b> since {DL.V4_START:%d %b %Y %H:%M} UTC · {len(v4)} V4 trade(s) so far · {DL.V4_NOTE}<br><span class='src'>V4 is V3's rules on DOGE PEPE SHIB FLOKI plus SOL with 3 open trades; V3 ran from {DL.V3_START:%d %b} and made no trades. V4 buys only while the BTC gate is open and a pair closes a 4h candle above its prior 20 bar high on above average volume; exits on two 4h closes below EMA50, the gate shutting, a 15% stop, or a 10% trailing stop after +20%. Silence while the gate is shut is the filter working.</span></div>", unsafe_allow_html=True)
+
+    if live:
+        v4_pnl = float(ft_all[(ft_all["entry_time"] >= DL.V4_START) & ft_all["pnl_usd"].notna()]["pnl_usd"].sum())
+        oc = opportunity_cost(DL.V4_START)
+        st.markdown("#### Opportunity cost <span class='src'>V4's dry run result against simply holding 25 USDT of each of the five pairs since V4 started; the number behind the feeling of missing out</span>", unsafe_allow_html=True)
+        if oc:
+            diff = v4_pnl - oc["pnl"]
+            c = st.columns(3)
+            with c[0]:
+                kpi("V4 dry run since 3 Nov", money(v4_pnl, currency="USDT", signed=True), f"{len(ft_all[ft_all['entry_time'] >= DL.V4_START])} trades", tone_of(v4_pnl))
+            with c[1]:
+                kpi("Holding the 5 pairs instead", money(oc["pnl"], currency="USDT", signed=True), f"{oc['pct']:+.1f}% on 125 USDT, {oc['from']} to {oc['as_of']}", tone_of(oc["pnl"]))
+            with c[2]:
+                kpi("V4 minus holding", money(diff, currency="USDT", signed=True), "positive = the rules saved money; negative = they cost upside", tone_of(diff))
+            st.dataframe(pd.DataFrame(oc["rows"]), hide_index=True, width="stretch",
+                         column_config={"Change": st.column_config.NumberColumn(format="%+.1f%%"), "P&L on 25 USDT": st.column_config.NumberColumn(format="%+.2f")})
+        else:
+            st.caption("Opportunity cost: Yahoo data not available right now.")
 
     st.markdown("<div class='src'>Two clocks: the BTC gate uses the last <b>completed daily</b> candle, so it updates once a day at 00:00 UTC (03:00 Kuwait) and shows yesterday's date until then. The pair checks below use the last <b>completed 4h</b> candle and update six times a day. A trade needs both: gate open on the daily, breakout on the 4h.</div>", unsafe_allow_html=True)
     rows = pair_rows()
