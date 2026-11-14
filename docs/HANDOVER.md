@@ -121,6 +121,11 @@ Repository: `github.com/i3baid-cpu/trading-ops` (private), cloned at `/root/trad
   measured in the report and none changes the verdict. They should be fixed before the simulator is reused, with
   Abdullah's approval.
 
+* Research protocol (14 Nov): `docs/RESEARCH_PROTOCOL.md` fixes how any strategy change earns promotion (pre-registered
+  candidates, unseen window first, bar, stress, forward test). First cycle pre-registered in
+  `docs/RESEARCH_CYCLE_2026-11.md`: five single-change variants of V4 (gate hysteresis, volume 0.8x, AVAX+LINK, 2h
+  timeframe, two stage exit). Research runs now; promotion waits for the 1 Dec V4 review unless V4 is losing.
+
 ## How to work with Abdullah
 * He is often on an iPad: give commands he can paste, one block at a time, and say which user runs them.
   `su - claude-ops` swallows any lines pasted after it; send it alone.
