@@ -117,7 +117,7 @@ def render(X, ALL, kpi, money, num, pct, tone_of, badge, TZ, fmt_time):
     if live:
         import data_live as DL
         v4 = ft_all[ft_all["strategy"].str.startswith("MemeSleeveV4")]
-        st.markdown(f"<div class='panel'><span class='dot dry'></span> <b>MemeSleeveV4 forward test</b> since {DL.V4_START:%d %b %Y %H:%M} UTC · {len(v4)} V4 trade(s) so far · {DL.V4_NOTE}<br><span class='src'>V4 is V3's rules on DOGE PEPE SHIB FLOKI plus SOL with 3 open trades; V3 ran from {DL.V3_START:%d %b} and made no trades. V4 buys only while the BTC gate is open and a pair closes a 4h candle above its prior 20 bar high on above average volume; exits on two 4h closes below EMA50, the gate shutting, a 15% stop, or a 10% trailing stop after +20%. Silence while the gate is shut is the filter working.</span></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='panel'><span class='dot dry'></span> <b>MemeSleeveV4 forward test</b> since {DL.V4_START:%d %b %Y %H:%M} UTC · {len(v4)} V4 trade(s) so far · {DL.V4_NOTE}<br><span class='src'>V4 is V3's rules on DOGE PEPE SHIB FLOKI plus SOL with 3 open trades; V3 ran from {DL.V3_START:%d %b} and made no trades. V4 buys only while the BTC gate is open and a pair closes a 4h candle above its prior 20 bar high on above average volume; exits on a 4h close below EMA50, the gate shutting, a 15% stop, or a 10% trailing stop after +20%. Silence while the gate is shut is the filter working.</span></div>", unsafe_allow_html=True)
 
     if live:
         v4_pnl = float(ft_all[(ft_all["entry_time"] >= DL.V4_START) & ft_all["pnl_usd"].notna()]["pnl_usd"].sum())
