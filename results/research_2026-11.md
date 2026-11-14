@@ -31,7 +31,7 @@ $FT download-data $CFG --pairs $PAIRS --timeframes 4h 1d --timerange 20200101-
 $FT download-data $CFG --pairs $PAIRS --timeframes 4h 1d --timerange 20200101- --prepend
 $FT download-data $CFG --pairs $PAIRS --timeframes 2h --timerange 20200101-
 ```
-Backtests: each full log, starting with the exact command, is in `results/cycle_2026-11/logs/`. All share
+Backtests: each full log, starting with the exact command, is in `results/cycle_2026-11/backtests/`. All share
 `--timerange 20200815-20231030 --fee 0.001 --breakdown month --enable-protections --export none`.
 ```
 $FT backtesting $CFG --strategy MemeSleeveV4  --timeframe 4h <common> --pairs DOGE/USDT SHIB/USDT SOL/USDT                         # baseline
