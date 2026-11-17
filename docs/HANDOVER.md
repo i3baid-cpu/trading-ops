@@ -155,6 +155,17 @@ Repository: `github.com/i3baid-cpu/trading-ops` (private), cloned at `/root/trad
   results/research_islamic_etf.md`, commit the result, no reruns with other settings. A pass is only eligibility to
   propose SPUS as a third paper symbol; the Lumibot config stays unchanged until Abdullah approves in writing.
 
+* Dashboard (17 Nov): pull request 3 merged with Abdullah's approval: a replay of the TrendFilter monthly checks on
+  each symbol of the Alpaca tab (`replay.tf_replay_fig`). Check it with real data after the auto deploy; the 1% band
+  should show around the SMA200 line.
+* Diversifier study (17 Nov, Abdullah asked which other funds to test; Shariah compliance is not a requirement): plan
+  `docs/RESEARCH_DIVERSIFIER_PLAN.md` fixed before any run. Candidates GLD, EFA, IWM, IEF, each as an equal third part
+  beside SPY and QQQ under the unchanged rule, 2007 on. Bar: sleeve drawdown at least 2 points lower, not worse in
+  either part, return per year not more than 1 point lower. **For the VPS agent:** `python3
+  scripts/tests/test_sleeve_compare.py && python3 scripts/sleeve_compare.py --out results/research_diversifier.md`,
+  commit the result, no reruns with other funds, dates or thresholds. At most one fund is proposed; the Lumibot config
+  stays unchanged until Abdullah approves in writing.
+
 ## How to work with Abdullah
 * He is often on an iPad: give commands he can paste, one block at a time, and say which user runs them.
   `su - claude-ops` swallows any lines pasted after it; send it alone.
