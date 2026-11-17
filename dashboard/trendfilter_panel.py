@@ -209,6 +209,8 @@ def render(kpi, money, tone_of, badge, al_live, al_cfg_file: dict):
             sf = sf[sf["symbol"] == s].assign(day=lambda d: d["ts"].map(_ny_day)) if not sf.empty else sf
             avg = float(held[s]["avg_cost"]) if s in held else None
             st.plotly_chart(C.trendfilter_price_fig(hs, s, sma, band, checks, sf, avg, nxt), width="stretch", config={"displaylogo": False})
+            import replay
+            replay.render_tf(st, hs[hs["date"] < today], s, sma, band, checks)
             ct = pd.DataFrame({"Check day": checks["check_day"].astype(str), "Decision": checks["action"], "Close": checks["close"].round(2),
                                f"SMA{sma}": checks["sma"].round(2), "Distance": checks["distance_pct"].map(lambda v: f"{v:+.1f}%"),
                                "Buy line": checks["buy_line"].round(2), "Sell line": checks["sell_line"].round(2),

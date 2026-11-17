@@ -93,6 +93,24 @@ def test_figures_build_and_are_bounded():
     print("[OK] figures build; missing data gives a note")
 
 
+def test_trendfilter_replay_shows_only_checks_already_made():
+    import datetime as dt
+    days = [dt.date(2025, 11, 3) + dt.timedelta(days=i) for i in range(260)]
+    close = [100 + i * 0.1 for i in range(260)]
+    hs = pd.DataFrame({"date": days, "close": close}); hs["sma"] = hs["close"] - 3; hs["upper"] = hs["sma"] * 1.01; hs["lower"] = hs["sma"] * 0.99
+    ck = pd.DataFrame({"check_day": [days[30], days[120], days[200]], "action": ["BUY", "HOLD (in)", "SELL"], "close": [103.0, 112.0, 120.0],
+                       "distance_pct": [3.1, 2.7, -1.4]})
+    f = R.tf_replay_fig(hs, "SPY", 200, 0.01, ck)
+    assert f is not None and len(f.frames) > 50 and len(f.data[4].x) == 3
+    early = next(fr for fr in f.frames if int(fr.name) < 30)
+    assert len(early.data[4].x) == 0 and "no monthly check yet" in early.layout.annotations[0].text      # nothing shown before it happened
+    mid = next(fr for fr in f.frames if 120 <= int(fr.name) < 200)
+    assert len(mid.data[4].x) == 2 and "SELL" not in mid.layout.annotations[0].text
+    assert "SELL" in f.layout.annotations[0].text and ": sell" in f.layout.annotations[0].text
+    assert R.tf_replay_fig(hs.head(10), "SPY", 200, 0.01, ck) is None and R.tf_replay_fig(hs, "SPY", 200, 0.01, ck.head(0)) is None
+    print("[OK] TrendFilter replay: a check appears only once its day is reached; empty inputs give no figure")
+
+
 def test_module_stays_read_only():
     src = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "replay.py")).read().lower()
     for bad in ("ccxt", "alpaca", "binance.client", "create_order", "requests.post", "api_key", "anthropic", "openai"):
