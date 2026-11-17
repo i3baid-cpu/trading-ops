@@ -144,6 +144,17 @@ Repository: `github.com/i3baid-cpu/trading-ops` (private), cloned at `/root/trad
   approval:** rerun the six grid candidates with version 2 into `results/research_grid_v2.md`; run `recursive-analysis`
   on V4 (never run so far); the V4 baseline reproduction stays the first step of December.
 
+* Dashboard (17 Nov): pull request 2 merged with Abdullah's approval: `dashboard/replay.py` adds a replay of V4's
+  rules with a decision log and a ridge panel of distance to the entry trigger to the Freqtrade tab (read only, fixed
+  rules, no model). After the auto deploy, run the container tests including `test_replay` and look at the panels with
+  real Yahoo data; they were only seen with synthetic prices before merge. Report anything odd (Yahoo hourly volume for
+  coins can be zero, which shows as "volume not available").
+* Islamic fund study (17 Nov, Abdullah asked for it): plan `docs/RESEARCH_ISLAMIC_ETF_PLAN.md` fixed before any run.
+  SPUS against SPY under the TrendFilter rule; bar: higher total return overall and in each half, drawdown within 3
+  points. **For the VPS agent:** `python3 scripts/tests/test_etf_compare.py && python3 scripts/etf_compare.py --out
+  results/research_islamic_etf.md`, commit the result, no reruns with other settings. A pass is only eligibility to
+  propose SPUS as a third paper symbol; the Lumibot config stays unchanged until Abdullah approves in writing.
+
 ## How to work with Abdullah
 * He is often on an iPad: give commands he can paste, one block at a time, and say which user runs them.
   `su - claude-ops` swallows any lines pasted after it; send it alone.
