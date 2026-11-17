@@ -51,18 +51,19 @@ def test_context_facts():
     assert metals.context(gold, "Gold")["ratio"] is None
 
 
-def test_moci_reference_and_premium():
+def test_dealer_price_and_premium():
     gold = ohlc(np.linspace(30, 45, 600))
-    ref = {"date": "2026-11-02", "karat": {"24K": 44.0, "22K": 40.333, "21K": 38.5, "18K": 33.0},
-           "ounce": {"gold": 44.0 * metals.TROY_OZ_G, "silver": 0.55 * metals.TROY_OZ_G}, "silver_gram": 0.55}
-    cx = metals.context(gold, "Gold", karat="21K", shop_price=38.5 * 1.05, moci=ref)
-    assert np.isclose(cx["moci_ref"], 44.0) and np.isclose(cx["moci_gap"], (45 / 44 - 1) * 100)
-    assert np.isclose(cx["premium"], 5.0) and cx["premium_src"] == "MOCI 2026-11-02"  # premium is over MOCI's 21K
-    sv = metals.context(ohlc(np.linspace(0.4, 0.5, 600)), "Silver", moci=ref)
-    assert np.isclose(sv["moci_ref"], 0.55)
+    buy = {"24K": 46.0, "22K": 46.0 * 22 / 24, "21K": 40.25, "18K": 34.5}
+    dealer = {"time": "2026-11-17 12:30 UTC", "buy": buy, "sell": {k: v * 0.99 for k, v in buy.items()}, "gold_oz_usd": 4600.0, "status": 1}
+    cx = metals.context(gold, "Gold", karat="21K", shop_price=40.25 * 1.05, dealer=dealer)
+    assert np.isclose(cx["dealer_buy"], 46.0) and np.isclose(cx["dealer_gap"], (45 / 46 - 1) * 100)
+    assert np.isclose(cx["premium"], 5.0) and cx["premium_src"] == "Dar Al Sabaek buy"  # premium is over their 21K buy price
+    assert any("Dar Al Sabaek, read 2026-11-17 12:30 UTC" in l for l in cx["lines"])
+    sv = metals.context(ohlc(np.linspace(0.4, 0.5, 600)), "Silver", karat="24K", shop_price=0.5 * 1.1, dealer=dealer)
+    assert sv["dealer_buy"] is None and sv["premium_src"] == "international"  # gold only
     no = metals.context(gold, "Gold", karat="24K", shop_price=45 * 1.02)
-    assert no["moci_ref"] is None and no["premium_src"] == "international" and np.isclose(no["premium"], 2.0)
-    assert any("MOCI reference price: Not available" in l for l in no["lines"])
+    assert no["dealer_buy"] is None and no["premium_src"] == "international" and np.isclose(no["premium"], 2.0)
+    assert any("Dar Al Sabaek price: Not available" in l for l in no["lines"])
 
 
 def test_metal_series_runs_through_the_engine():
