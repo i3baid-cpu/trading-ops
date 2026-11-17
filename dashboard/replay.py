@@ -206,9 +206,91 @@ def ridge_fig(series: dict[str, pd.Series], floor: float = -20.0, cap: float = 1
         updatemenus=[dict(type="buttons", direction="left", x=0, y=1.12, xanchor="left", yanchor="top", showactive=False,
                           bgcolor=C.PANEL, bordercolor=C.GRID, font=dict(color=C.TEXT, size=11),
                           buttons=[dict(label="▶ Sweep", method="animate",
-                                        args=[None, dict(frame=dict(duration=70, redraw=False), transition=dict(duration=0), fromcurrent=False, mode="immediate")])])],
+                                        args=[None, dict(frame=dict(duration=70, redraw=True), transition=dict(duration=0), fromcurrent=False, mode="immediate")])])],
     )
     return fig
+
+
+TF_TAG = {"BUY": ("BUY", "#19c37d"), "SELL": ("SELL", "#e66767"), "HOLD (in)": ("HOLD", "#3987e5"), "STAY OUT": ("OUT", "#c98500")}
+
+
+def _tf_line(r, sma: int) -> str:
+    tag, col = TF_TAG.get(r["action"], (str(r["action"])[:5], C.MUTED))
+    d = float(r["distance_pct"])
+    why = {"BUY": f"close {d:+.1f}% vs SMA{sma}: buy", "SELL": f"close {d:+.1f}% vs SMA{sma}: sell",
+           "HOLD (in)": f"held, close {d:+.1f}% vs SMA{sma}", "STAY OUT": f"not held, close {d:+.1f}% vs SMA{sma}"}.get(r["action"], "")
+    return f"<span style='color:{col}'><b>{tag:<5}</b></span> <span style='color:{C.MUTED}'>{pd.Timestamp(r['check_day']):%d %b %y}</span>  {why}"
+
+
+def tf_replay_fig(hs: pd.DataFrame, sym: str, sma: int, band: float, checks: pd.DataFrame, step: int = 3, lines: int = 7) -> go.Figure | None:
+    """TrendFilter replay: daily closes against the SMA band, one decision per monthly check.
+    hs: date, close, sma, upper, lower (completed sessions). checks: check_day, action, close, distance_pct."""
+    hs = hs.dropna(subset=["sma"]).reset_index(drop=True)
+    if len(hs) < 40 or checks is None or checks.empty:
+        return None
+    ck = checks[checks["check_day"] >= hs["date"].iloc[0]].sort_values("check_day").reset_index(drop=True)
+    if ck.empty:
+        return None
+    x = [pd.Timestamp(d) for d in hs["date"]]
+    cx = [pd.Timestamp(d) for d in ck["check_day"]]
+    n = len(hs)
+
+    def traces(i: int) -> list:
+        s = slice(0, i + 1)
+        seen = [j for j, d in enumerate(cx) if d <= x[i]]
+        out = [
+            go.Scatter(x=x[s], y=hs["upper"].values[s], mode="lines", line=dict(color="rgba(34,184,207,0.55)", width=1, dash="dot"), hoverinfo="skip"),
+            go.Scatter(x=x[s], y=hs["lower"].values[s], mode="lines", line=dict(color="rgba(34,184,207,0.55)", width=1, dash="dot"),
+                       fill="tonexty", fillcolor="rgba(34,184,207,0.16)", hoverinfo="skip"),
+            go.Scatter(x=x[s], y=hs["sma"].values[s], mode="lines", line=dict(color="#22b8cf", width=1.6), name=f"SMA{sma}"),
+            go.Scatter(x=x[s], y=hs["close"].values[s], mode="lines", line=dict(color=C.TEXT, width=1.8), name=sym),
+            go.Scatter(x=[cx[j] for j in seen], y=[float(ck["close"].iloc[j]) for j in seen], mode="markers",
+                       marker=dict(size=11, color=[TF_TAG.get(ck["action"].iloc[j], ("", C.MUTED))[1] for j in seen], line=dict(color="#fff", width=1)),
+                       text=[ck["action"].iloc[j] for j in seen], hovertemplate="%{x|%d %b %Y}: %{text}<extra></extra>"),
+        ]
+        return out
+
+    def notes(i: int) -> list:
+        seen = [j for j, d in enumerate(cx) if d <= x[i]]
+        log = "<br>".join(_tf_line(ck.iloc[j], sma) for j in reversed(seen[-lines:])) or f"<span style='color:{C.MUTED}'>no monthly check yet</span>"
+        c = ck["action"].iloc[seen].map(lambda a: TF_TAG.get(a, (a, ""))[0]).value_counts() if seen else {}
+        counter = f"{x[i]:%d %b %y} · checks {len(seen)}" + "".join(f" · <span style='color:{col}'>{tag} {int(c.get(tag, 0))}</span>" for tag, col in TF_TAG.values() if c.get(tag, 0))
+        return [
+            dict(xref="paper", yref="paper", x=0, y=0.30, xanchor="left", yanchor="top", align="left", showarrow=False, text=log, font=dict(family=MONO, size=11, color=C.TEXT)),
+            dict(xref="paper", yref="paper", x=0, y=0.335, xanchor="left", yanchor="middle", showarrow=False, text=counter, font=dict(family=MONO, size=11, color=C.MUTED)),
+            dict(xref="paper", yref="paper", x=0, y=0.37, xanchor="left", yanchor="middle", showarrow=False, text="MONTHLY CHECKS · newest first", font=dict(family=MONO, size=10, color=C.MUTED)),
+        ]
+
+    idx = list(range(20, n - 1, step)) + [n - 1]
+    fig = go.Figure(data=traces(n - 1))
+    fig.frames = [go.Frame(name=str(i), data=traces(i), layout=dict(annotations=notes(i))) for i in idx]
+    lo = float(min(hs["close"].min(), hs["lower"].min())); hi = float(max(hs["close"].max(), hs["upper"].max()))
+    pad = (hi - lo) * 0.06
+    C.base_layout(fig, height=600, hovermode="closest")
+    fig.update_layout(
+        annotations=notes(n - 1), margin=dict(l=8, r=8, t=50, b=8), showlegend=False,
+        xaxis=dict(range=[x[0], x[-1] + pd.Timedelta(days=6)], domain=[0, 1], tickformat="%b %y"),
+        yaxis=dict(range=[lo - pad, hi + pad], domain=[0.44, 1], side="right"),
+        updatemenus=[dict(type="buttons", direction="left", x=0, y=1.0, xanchor="left", yanchor="bottom", pad=dict(b=6, l=0), showactive=False,
+                          bgcolor=C.PANEL, bordercolor=C.GRID, font=dict(color=C.TEXT, size=11),
+                          buttons=[dict(label="▶ Replay", method="animate",
+                                        args=[None, dict(frame=dict(duration=90, redraw=True), transition=dict(duration=0), fromcurrent=False, mode="immediate")]),
+                                   dict(label="❚❚ Pause", method="animate", args=[[None], dict(frame=dict(duration=0, redraw=False), mode="immediate")])])],
+    )
+    return fig
+
+
+def render_tf(st, hs: pd.DataFrame, sym: str, sma: int, band: float, checks: pd.DataFrame):
+    """Replay block for one TrendFilter symbol, shown inside the stock bot tab."""
+    st.markdown("<style>div[class*='st-key-replay_'] .js-plotly-plot { max-height: none !important; }</style>", unsafe_allow_html=True)
+    fig = tf_replay_fig(hs, sym, sma, band, checks)
+    if fig is None:
+        st.caption(f"{sym} replay: not enough history yet.")
+        return
+    st.plotly_chart(fig, width="stretch", config={"displaylogo": False, "displayModeBar": False}, key=f"replay_tf_{sym}")
+    st.markdown(f"<div class='src'>White line: {sym} daily close · <span style='color:#22b8cf'>━</span> SMA{sma} with its ±{band:.0%} band · dots: the monthly check "
+                "(<span style='color:#19c37d'>buy</span>, <span style='color:#3987e5'>hold</span>, <span style='color:#c98500'>stay out</span>, <span style='color:#e66767'>sell</span>). "
+                "Between dots the bot does nothing. Same decisions as the table below: the bot's own where its journal has them, otherwise the rule replayed on Yahoo closes.</div>", unsafe_allow_html=True)
 
 
 def build(yahoo, pairs: dict[str, str], now: pd.Timestamp | None = None) -> dict:
