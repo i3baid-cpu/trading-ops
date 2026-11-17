@@ -143,6 +143,9 @@ def render(X, ALL, kpi, money, num, pct, tone_of, badge, TZ, fmt_time):
     st.markdown(f"#### Entry conditions right now <span class='src'>last completed 4h candle{(' opened ' + asof + ' UTC') if asof else ''}; recomputed from Yahoo 1h bars resampled to 4h; the bot uses Binance candles so small differences are normal</span>", unsafe_allow_html=True)
     st.dataframe(pd.DataFrame(rows).drop(columns=["As of"], errors="ignore"), hide_index=True, width="stretch")
 
+    import replay
+    replay.render(st, _yahoo, PAIRS)
+
     left, right = st.columns([1.2, 1])
     with left:
         ec = D.equity_curve(ft_all)
