@@ -151,9 +151,11 @@ Repository: `github.com/i3baid-cpu/trading-ops` (private), cloned at `/root/trad
   coins can be zero, which shows as "volume not available").
 * Islamic fund study (17 Nov, Abdullah asked for it): plan `docs/RESEARCH_ISLAMIC_ETF_PLAN.md` fixed before any run.
   SPUS against SPY under the TrendFilter rule; bar: higher total return overall and in each half, drawdown within 3
-  points. **For the VPS agent:** `python3 scripts/tests/test_etf_compare.py && python3 scripts/etf_compare.py --out
-  results/research_islamic_etf.md`, commit the result, no reruns with other settings. A pass is only eligibility to
-  propose SPUS as a third paper symbol; the Lumibot config stays unchanged until Abdullah approves in writing.
+  points. **Result (17 Nov, `results/research_islamic_etf.md`): FAIL on criterion 3.** Window 2020-11-02 to
+  2026-11-16. Under the rule SPUS +109.5% vs SPY +98.3%, ahead in both halves, but max drawdown 23.6% vs 15.6% (8.0
+  points worse, limit 3), from the 2022 bear market (peak 2021-12-27, low 2023-03-10; no bad prints in the data).
+  HLAL (context only) beat SPY on all three; using it needs its own plan written before any run. Holding a Shariah
+  fund for compliance is Abdullah's call regardless of this bar. Lumibot config unchanged.
 
 * Dashboard (17 Nov): pull request 3 merged with Abdullah's approval: a replay of the TrendFilter monthly checks on
   each symbol of the Alpaca tab (`replay.tf_replay_fig`). Check it with real data after the auto deploy; the 1% band
@@ -161,10 +163,10 @@ Repository: `github.com/i3baid-cpu/trading-ops` (private), cloned at `/root/trad
 * Diversifier study (17 Nov, Abdullah asked which other funds to test; Shariah compliance is not a requirement): plan
   `docs/RESEARCH_DIVERSIFIER_PLAN.md` fixed before any run. Candidates GLD, EFA, IWM, IEF, each as an equal third part
   beside SPY and QQQ under the unchanged rule, 2007 on. Bar: sleeve drawdown at least 2 points lower, not worse in
-  either part, return per year not more than 1 point lower. **For the VPS agent:** `python3
-  scripts/tests/test_sleeve_compare.py && python3 scripts/sleeve_compare.py --out results/research_diversifier.md`,
-  commit the result, no reruns with other funds, dates or thresholds. At most one fund is proposed; the Lumibot config
-  stays unchanged until Abdullah approves in writing.
+  either part, return per year not more than 1 point lower. **Result (17 Nov, `results/research_diversifier.md`): no
+  candidate passes, none proposed.** Window 2007-01-03 to 2026-11-16. Baseline SPY+QQQ +11.41%/yr, drawdown 20.6%.
+  GLD and IEF cut drawdown by 3.3 and 4.2 points and held in both parts, but gave up 1.20 and 1.86 points a year
+  (limit 1.0). IWM and EFA cut it by under 2 points. Lumibot config unchanged.
 
 ## How to work with Abdullah
 * He is often on an iPad: give commands he can paste, one block at a time, and say which user runs them.
