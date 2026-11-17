@@ -17,7 +17,7 @@ Read this first in every Claude Code session on the VPS. It is the memory of the
 |---|---|---|---|
 | freqtrade | MemeSleeveV4 (V3's rules, SOL added), 4h, DOGE PEPE SHIB FLOKI SOL /USDT, Binance spot, stake 25 USDT, max 3 | DRY RUN; V3 ran 2026-10-30 21:26 to 2026-11-03 12:06 UTC with 0 trades; V4 since 2026-11-03 12:06 UTC (log: strategy V4, max_open_trades 3, whitelist 5 pairs, no errors); Telegram alerts on | Strategy, pairs and max_open_trades are in `/root/freqtrade/config.json` (root only; backup before V4: `config.json.bak-20261103-pre-v4`). `sudo ft-swap-strategy` allows only V1/2/3, so V4 was set as root. `user_data/backtest_config.json` is the secrets free mirror (V4, 5 pairs, max 3 since 3 Nov; previous copy `~claude-ops/backtest_config.bak-20261103-pre-v4.json`); to reproduce V3 runs pass `--strategy MemeSleeveV3 --pairs DOGE/USDT PEPE/USDT SHIB/USDT FLOKI/USDT --max-open-trades 2`. |
 | lumibot | TrendFilter: SPY and QQQ, hold while last completed close > SMA200 (1% band), monthly check, fractional shares, $1,000 sleeve inside a $100k paper account, Telegram alerts | PAPER since 2026-10-30 21:54 UTC; rebuilt 2026-11-01 10:43 UTC with the state file fix (d47dd0b), restarts 0, ledger loaded `{'realized': 0.0, 'pos': {}}`, first check 2026-11-02 14:31 UTC: ledger reconciled at 0/0, both above SMA200, bought 0.645 SPY @ 759.36 and 0.705 QQQ @ 695.14 (both filled, no rejects, no `.invalid` file; Abdullah confirmed the Telegram alert arrived, 3 Nov) | config `/root/lumibot/config.json` (root), strategy `/root/lumibot/strategies/trend_filter.py` (repo copy `fixes/alpaca/strategies/trend_filter.py`, in sync since 327a318), ledger `strategies/trend_filter_state.json`; `docker compose up -d --build` as root |
-| trading-dashboard | Streamlit dashboard, 10 tabs (Freqtrade, Alpaca, Stock Check, Robinhood, Risk, Performance, Strategies, Trades, Health, Signals; deployed 2026-11-03 12:24 UTC from 15b3731 (V4 panel, Metals in Stock Check), data, CRT and metals tests passed in the running container, rollback image deploy-dashboard:pre-20261101 is older (8c845bd), so roll back by reverting in the repo instead). The auto-deploy cron is installed and works (rebuilt ada432a at 12:14 UTC on its own), but neither it nor the Dockerfile runs the tests: after a dashboard change, run as root `for t in test_data test_crt test_metals; do docker exec -e DASH_MODE=file trading-dashboard python tests/$t.py 2>&1 \| tail -2; done`, reads the dry run sqlite, the Lumibot ledger and config, Yahoo daily data for the Stock Check tab | on 127.0.0.1:8501 and 100.99.81.45:8501 (Tailscale) | `cd /root/trading-ops && git pull --ff-only origin main && docker compose -f deploy/docker-compose.dashboard.yml up -d --build` as root |
+| trading-dashboard | Streamlit dashboard, 10 tabs (Freqtrade, Alpaca, Stock Check, Robinhood, Risk, Performance, Strategies, Trades, Health, Signals; deployed 2026-11-03 12:24 UTC from 15b3731 (V4 panel, Metals in Stock Check), data, CRT and metals tests passed in the running container, rollback image deploy-dashboard:pre-20261101 is older (8c845bd), so roll back by reverting in the repo instead). The auto-deploy cron is installed and works (rebuilt ada432a at 12:14 UTC on its own), but neither it nor the Dockerfile runs the tests: after a dashboard change, run as root `for t in test_data test_crt test_metals test_daralsabaek; do docker exec -e DASH_MODE=file trading-dashboard python tests/$t.py 2>&1 \| tail -2; done`, reads the dry run sqlite, the Lumibot ledger and config, Yahoo daily data for the Stock Check tab | on 127.0.0.1:8501 and 100.99.81.45:8501 (Tailscale) | `cd /root/trading-ops && git pull --ff-only origin main && docker compose -f deploy/docker-compose.dashboard.yml up -d --build` as root |
 | weekly-audit (cron, Sunday 06:17 UTC) | read only audit by `claude -p`, report to Telegram and `~/trading_fixes/results/weekly/` | first run verified 2026-11-01 06:17 UTC: report `~/trading_fixes/results/weekly/2026-11-01.md` written, Telegram message arrived (Abdullah confirmed) | `/usr/local/sbin/weekly-audit` as root |
 
 VPS reboot 2026-11-03 12:51:56 UTC (Abdullah): all three containers came back on their own at 12:52:10 UTC
@@ -67,12 +67,18 @@ Repository: `github.com/i3baid-cpu/trading-ops` (private), cloned at `/root/trad
   distance from the 10 year high, volatility, worst fall and recovery, the gold/silver ratio, and the same weekly
   and daily rule reads sized in grams. Log entries are named GOLD_KWDG / SILVER_KWDG. Code `dashboard/metals.py`,
   tests `dashboard/tests/test_metals.py`. It is a rule read on international prices, not a forecast.
-  The Kuwait reference is MOCI's gold prices page (`moci.gov.kw/MociSite/gold-prices/`, Central Bank of Kuwait
-  bulletin, one price per business day, metal only): shown with the gap to the Yahoo price and used as the base of
-  the shop premium; Not available if the page is down or its gram and ounce prices disagree (`dashboard/moci.py`,
-  `tests/test_moci.py`). On 2 Nov MOCI 24K was 38.680 KWD/g vs Yahoo 38.903 (30 Oct close), 39.649 (2 Nov close).
-  Daily log `results/metals/moci_daily.csv` by `scripts/moci_log.py`, claude-ops crontab 06:30 and 18:30 UTC,
-  output in `~/moci_log.log` (not created yet at 13:54 UTC 3 Nov; first run due 18:30 UTC 3 Nov); commit the CSV when updating the handover.
+  The Kuwait gold price is Dar Al Sabaek (since 17 Nov, Abdullah's decision: it is where most people in Kuwait buy and
+  sell gold). Its website's price address `api.daralsabaek.com/api/goldAndFundBalance/getMetalSellAndBuyPrices` needs no
+  login; it is the dealer's own address, not a published service, and the same server takes orders, so only that one
+  address may be called (`tests/test_data.py` fails on their order and login addresses). Live buy and sell prices for
+  24K/22K/21K/18K, shown with the gap to the Yahoo price; the shop premium is over their buy price for the same karat.
+  Gold only; silver stays on the international price. Not available if the reply looks wrong (`dashboard/daralsabaek.py`,
+  `tests/test_daralsabaek.py`). On 17 Nov 12:22 UTC: 24K buy 39.112, sell 38.817 KWD/g (0.76% apart), about 1.8% over
+  Yahoo. Log `results/metals/das_daily.csv` by `scripts/das_log.py`, one timestamped row per run, claude-ops crontab
+  06:30 and 18:30 UTC, output in `~/das_log.log`; commit the CSV when updating the handover.
+  MOCI (`moci.gov.kw`, Central Bank bulletin) was the reference until then; its log `results/metals/moci_daily.csv`
+  (2 to 8 Nov) stays as history. It blocks scripts since 10 Nov 18:30 UTC (old address 403, new `new2.moci.gov.kw`
+  behind a Sucuri browser check, which we do not get around), so `moci.py` and `moci_log.py` were removed.
 * SOL / V4 study (2 Nov, run as claude-ops with `docker run`, which Abdullah approved for this study; plan
   `docs/RESEARCH_V4_PLAN.md`): V3 unchanged is profitable on the unseen 2020-08 to 2023-10 window on every coin and
   as a basket (+58 USDT, PF 1.46), but far below holding the coins. Of the 6 pre-declared variants, variant 5 (memes
@@ -104,8 +110,8 @@ Repository: `github.com/i3baid-cpu/trading-ops` (private), cloned at `/root/trad
    and restart.
 7. On 2 Nov a Claude Code session ran as root, not claude-ops (git had no root identity; files it created in
    `/root/trading-ops` are root owned). Start sessions with `su - claude-ops`, then `cd ~/trading-ops && claude`.
-8. About 3 Dec: compare `results/metals/moci_daily.csv` with Yahoo daily closes (GC=F, SI=F x KWD=X) on matching
-   days: average gap, its spread, and the correlation of daily changes. If the gap is stable, consider correcting the
+8. About 3 Dec: compare `results/metals/das_daily.csv` (Dar Al Sabaek, from 17 Nov) with Yahoo gold (GC=F x KWD=X)
+   on matching days: average gap, its spread, and the correlation of daily changes. If the gap is stable, consider correcting the
    panel's KWD price for it; if it is not, find out why (timing, futures premium, FX source) before using either.
 
 * Grid study (14 Nov, Abdullah's decision: he wants to deploy new capital, target $600 a year, and asked whether a grid bot
@@ -167,6 +173,11 @@ Repository: `github.com/i3baid-cpu/trading-ops` (private), cloned at `/root/trad
   candidate passes, none proposed.** Window 2007-01-03 to 2026-11-16. Baseline SPY+QQQ +11.41%/yr, drawdown 20.6%.
   GLD and IEF cut drawdown by 3.3 and 4.2 points and held in both parts, but gave up 1.20 and 1.86 points a year
   (limit 1.0). IWM and EFA cut it by under 2 points. Lumibot config unchanged.
+
+* Dashboard (17 Nov): pull request 4 merged with Abdullah's approval: on the Stock Check tab, a replay of the Stock
+  read (verdict per session for the last 120 sessions, each from data up to that day) and a long history replay for
+  gold and silver in KWD per gram. After the auto deploy, run the container tests including `test_replay` and check
+  both with real data (a Kuwaiti ticker and Gold).
 
 ## How to work with Abdullah
 * He is often on an iPad: give commands he can paste, one block at a time, and say which user runs them.

@@ -70,10 +70,11 @@ def _fmt(v: float, spec: str = "+.1f", suffix: str = "%") -> str:
 
 
 def context(d: pd.DataFrame, metal: str, other: pd.DataFrame | None = None, karat: str = "24K", shop_price: float = 0.0,
-            moci: dict | None = None) -> dict:
-    """Facts a buyer needs besides the chart rules: karat prices, the MOCI reference and the gap to it, returns, distance
-    from the high, how much it swings, the worst past fall, the gold/silver ratio and, if given, the shop's premium
-    over MOCI (over the international price when MOCI is not available)."""
+            dealer: dict | None = None) -> dict:
+    """Facts a buyer needs besides the chart rules: karat prices, Dar Al Sabaek's gold buy and sell prices and the gap to
+    them, returns, distance from the high, how much it swings, the worst past fall, the gold/silver ratio and, if given,
+    the shop's premium over Dar Al Sabaek's buy price (over the international price for silver or when it is not
+    available). `dealer` is daralsabaek.parse() output."""
     c = pd.Series(d["close"].astype(float).values, index=pd.to_datetime(d["date"]))
     px, last = float(c.iloc[-1]), c.index[-1]
     yrs = (last - c.index[0]).days / 365.25
@@ -92,7 +93,7 @@ def context(d: pd.DataFrame, metal: str, other: pd.DataFrame | None = None, kara
     peak = c[:trough].idxmax()
     rec = c[trough:][c[trough:] >= c[peak]]
     k_px = {k: px * n / 24 for k, n in KARATS.items()}
-    ref = (moci["karat"].get("24K") if metal == "Gold" else moci.get("silver_gram")) if moci else None
+    ref = dealer["buy"]["24K"] if dealer and metal == "Gold" else None
     gap = (px / ref - 1) * 100 if ref else None
 
     lines = [
@@ -107,12 +108,16 @@ def context(d: pd.DataFrame, metal: str, other: pd.DataFrame | None = None, kara
         + (f"back above that high by {rec.index[0]:%Y-%m-%d}." if len(rec) else "not yet back above that high."),
     ]
     if ref:
-        lines.insert(1, f"MOCI reference for {moci['date']}: {ref:.3f} KWD per gram"
-                     + (" of 24K, " + ", ".join(f"{k} {v:.3f}" for k, v in moci["karat"].items() if k != "24K") if metal == "Gold" else "")
-                     + f". The price above is {gap:+.1f}% from it. MOCI is one Central Bank of Kuwait price per business day and the "
-                     "price above is the US futures close, so a gap of a percent or two is timing, not an error.")
+        sell = dealer["sell"]["24K"]
+        lines.insert(1, f"Dar Al Sabaek, read {dealer['time']}: you buy 24K at {ref:.3f} and sell at {sell:.3f} KWD per gram "
+                     f"({(ref / sell - 1) * 100:.1f}% between them, lost if you buy and sell back); buy "
+                     + ", ".join(f"{k} {v:.3f}" for k, v in dealer["buy"].items() if k != "24K")
+                     + f". The international price above is {gap:+.1f}% from their 24K buy price: their margin plus any move "
+                     "since the last daily close.")
+    elif metal == "Gold":
+        lines.insert(1, "Dar Al Sabaek price: Not available.")
     else:
-        lines.insert(1, "MOCI reference price: Not available.")
+        lines.insert(1, "Dealer price: Dar Al Sabaek is used for gold only; silver is the international price.")
     ratio = None
     if other is not None and len(other):
         o = pd.Series(other["close"].astype(float).values, index=pd.to_datetime(other["date"]))
@@ -128,7 +133,7 @@ def context(d: pd.DataFrame, metal: str, other: pd.DataFrame | None = None, kara
     prem, src = None, None
     if shop_price and shop_price > 0:
         if ref:
-            base, src = (moci["karat"].get(karat) if metal == "Gold" else None) or ref * KARATS[karat] / 24, f"MOCI {moci['date']}"
+            base, src = dealer["buy"][karat], "Dar Al Sabaek buy"
         else:
             base, src = k_px[karat], "international"
         prem = (shop_price / base - 1) * 100
@@ -139,4 +144,4 @@ def context(d: pd.DataFrame, metal: str, other: pd.DataFrame | None = None, kara
                  "protects you more than picking the exact day.")
     return {"price": px, "karat_prices": k_px, "off_high": off_hi, "ret_1y": rets["1 year"], "vol": vol,
             "max_dd": float(dd.min() * 100), "ratio": ratio, "premium": prem, "premium_src": src,
-            "moci_ref": ref, "moci_gap": gap, "lines": lines}
+            "dealer_buy": ref, "dealer_gap": gap, "lines": lines}

@@ -10,8 +10,8 @@ import streamlit as st
 import charts as C
 import crt
 import crt_data
+import daralsabaek
 import metals
-import moci
 import replay
 
 LOG_PATH = os.environ.get("CRT_LOG", os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "crt_log.csv"))
@@ -37,15 +37,16 @@ def _metal(name: str):
     return metals.fetch_kwd_gram(name)
 
 
-@st.cache_data(ttl=3600, show_spinner=False)
-def _moci():
-    return moci.fetch()[0]
+@st.cache_data(ttl=300, show_spinner=False)
+def _dealer():
+    return daralsabaek.fetch()[0]
 
 
 def _metal_panel(df: pd.DataFrame, metal: str, karat: str, shop_price: float) -> None:
     other = next(m for m in metals.METALS if m != metal)
-    cx = metals.context(df, metal, _metal(other)[0], karat, shop_price, _moci())
-    ref = f"MOCI {cx['moci_ref']:.3f} ({cx['moci_gap']:+.1f}%)" if cx["moci_ref"] else "MOCI Not available"
+    cx = metals.context(df, metal, _metal(other)[0], karat, shop_price, _dealer() if metal == "Gold" else None)
+    ref = (f"Dar Al Sabaek buy {cx['dealer_buy']:.3f} ({cx['dealer_gap']:+.1f}%)" if cx["dealer_buy"]
+           else "Dar Al Sabaek Not available" if metal == "Gold" else "international price")
     st.markdown(f"#### {metal} in KWD per gram <span class='src'>international price from Yahoo, converted with USD/KWD; completed days only</span>", unsafe_allow_html=True)
     k = st.columns(4)
     with k[0]:
