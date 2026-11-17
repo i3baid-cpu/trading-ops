@@ -174,6 +174,11 @@ Repository: `github.com/i3baid-cpu/trading-ops` (private), cloned at `/root/trad
   GLD and IEF cut drawdown by 3.3 and 4.2 points and held in both parts, but gave up 1.20 and 1.86 points a year
   (limit 1.0). IWM and EFA cut it by under 2 points. Lumibot config unchanged.
 
+* Dashboard (17 Nov): pull request 4 merged with Abdullah's approval: on the Stock Check tab, a replay of the Stock
+  read (verdict per session for the last 120 sessions, each from data up to that day) and a long history replay for
+  gold and silver in KWD per gram. After the auto deploy, run the container tests including `test_replay` and check
+  both with real data (a Kuwaiti ticker and Gold).
+
 ## How to work with Abdullah
 * He is often on an iPad: give commands he can paste, one block at a time, and say which user runs them.
   `su - claude-ops` swallows any lines pasted after it; send it alone.
