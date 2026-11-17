@@ -111,6 +111,45 @@ def test_trendfilter_replay_shows_only_checks_already_made():
     print("[OK] TrendFilter replay: a check appears only once its day is reached; empty inputs give no figure")
 
 
+def _daily(n=320, seed=5):
+    import datetime as dt
+    rng = np.random.default_rng(seed)
+    c = 100 * np.exp(np.cumsum(rng.normal(0.0006, 0.013, n))); o = np.r_[c[0], c[:-1]]
+    return pd.DataFrame({"date": [dt.date(2025, 9, 1) + dt.timedelta(days=i) for i in range(n)], "open": o, "high": np.maximum(o, c) * 1.004,
+                         "low": np.minimum(o, c) * 0.996, "close": c, "volume": 1.0})
+
+
+def test_read_replay_matches_the_tab_and_uses_no_future_data():
+    import datetime as dt
+    import crt
+    df = _daily()
+    h = R.read_history(df, "US")
+    assert len(h) == 120 and h["date"].iloc[-1] == df["date"].iloc[-1]
+    last = crt.stock_read(df, "US", today=df["date"].iloc[-1] + dt.timedelta(days=1))
+    assert h["verdict"].iloc[-1] == last["verdict"]                               # the last square is what the tab shows now
+    cut = R.read_history(df.iloc[:-30], "US")
+    assert cut["verdict"].tolist()[-60:] == h["verdict"].tolist()[-90:-30]         # earlier days do not change when later days exist
+    f = R.read_replay_fig("TEST", h)
+    assert f is not None and len(f.frames) == len(h) - 5 and len(f.data[3].x) == len(h)
+    early = f.frames[10]
+    assert len(early.data[0].x) == int(early.name) + 1 and len(early.data[3].x) == int(early.name) + 1
+    assert R.read_replay_fig("TEST", h.head(5)) is None
+    print(f"[OK] read replay: 120 sessions, last verdict equals the tab's ({last['verdict']}), earlier verdicts unchanged by later data")
+
+
+def test_metal_replay_reports_the_fall_from_the_high():
+    idx = pd.date_range("2016-01-01", periods=520 * 7, freq="D")
+    price = np.r_[np.linspace(10, 20, 1500), np.linspace(20, 12, 800), np.linspace(12, 30, len(idx) - 2300)]
+    mh = R.metal_history(pd.DataFrame({"date": idx.date, "close": price}))
+    assert abs(mh["dd_pct"].min() - (-40.0)) < 1.0 and mh["dd_pct"].iloc[-1] > -0.01 and bool(mh["record"].iloc[-1])
+    f = R.metal_replay_fig("Gold", mh)
+    assert f is not None and len(f.frames) > 100 and "record high" in f.layout.annotations[0].text and "worst fall so far -40%" in f.layout.annotations[0].text
+    mid = next(fr for fr in f.frames if mh.index[int(fr.name)] > pd.Timestamp("2022-01-01") and mh.index[int(fr.name)] < pd.Timestamp("2022-03-01"))
+    assert "from its high" in mid.layout.annotations[0].text                       # during the fall the frame says so
+    assert R.metal_replay_fig("Gold", mh.head(10)) is None
+    print("[OK] metal replay: weekly closes, running high, worst fall -40% found; a frame inside the fall reports it")
+
+
 def test_module_stays_read_only():
     src = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "replay.py")).read().lower()
     for bad in ("ccxt", "alpaca", "binance.client", "create_order", "requests.post", "api_key", "anthropic", "openai"):

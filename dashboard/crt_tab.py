@@ -12,6 +12,7 @@ import crt
 import crt_data
 import metals
 import moci
+import replay
 
 LOG_PATH = os.environ.get("CRT_LOG", os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "crt_log.csv"))
 
@@ -59,6 +60,12 @@ def _metal_panel(df: pd.DataFrame, metal: str, karat: str, shop_price: float) ->
         else:
             st.markdown(f"<div class='kpi'><div class='l'>Gold/silver ratio</div><div class='v' style='font-size:16px'>{'Not available' if cx['ratio'] is None else format(cx['ratio'], '.0f')}</div><div class='d'>enter a shop price for the premium</div></div>", unsafe_allow_html=True)
     st.markdown("<div class='panel'><div class='rule' style='white-space:pre-wrap'>" + "\n".join(cx["lines"]) + "</div></div>", unsafe_allow_html=True)
+    replay.render_metal(st, metal, df)
+
+
+@st.cache_data(ttl=900, show_spinner=False)
+def _read_hist(df: pd.DataFrame, market: str, capital: float, risk_pct: float) -> pd.DataFrame:
+    return replay.read_history(df, market, capital=capital, risk_pct=risk_pct)
 
 
 def render():
@@ -163,6 +170,8 @@ def render():
         else:
             st.markdown(f"<div class='kpi'><div class='l'>Levels to watch</div><div class='v' style='font-size:16px'>{sr.get('ema50', float('nan')):.4g}</div><div class='d'>EMA50 reclaim / range edges</div></div>", unsafe_allow_html=True)
     st.markdown("<div class='panel'><div class='rule' style='white-space:pre-wrap'>" + "\n".join(T(l) for l in sr["lines"]) + "</div></div>", unsafe_allow_html=True)
+
+    replay.render_read(st, ticker.upper(), _read_hist(df, market, capital, risk_pct))
 
     st.markdown("#### CRT setup check <span class='src'>exact entry only when a sweep exists</span>", unsafe_allow_html=True)
     a = crt.analyze(df, f"{ticker.upper()}{metals.LOG_SUFFIX}" if is_metal else ticker.upper(), market, capital=capital, risk_pct=risk_pct, min_rr=min_rr, data_source=source_note)
