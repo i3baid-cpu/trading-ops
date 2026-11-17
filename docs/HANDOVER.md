@@ -91,6 +91,14 @@ Repository: `github.com/i3baid-cpu/trading-ops` (private), cloned at `/root/trad
   because V3 had no trades to review. `fixes/freqtrade/MemeSleeveV4.py` is V3's code with only the class name and
   header changed, so its trades are labelled V4; SOL and max_open_trades 3 are in `config.json`. Dashboard, gate
   script and /gate /status commands follow V4. Real money still needs his written approval.
+* SPUS added to the paper TrendFilter (17 Nov, Abdullah's written decision): "I have decided to add SPUS to the paper
+  TrendFilter bot. This is my written decision; it failed the drawdown test and I am adding it anyway." It failed
+  criterion 3 of its study (drawdown 23.6% vs SPY 15.6%, limit 3 points worse; `results/research_islamic_etf.md`).
+  Config: SPY, QQQ, SPUS; capital_usd 1,500 (was 1,000); stake_pct 0.3333 (≈$490 a symbol, the size SPY and QQQ already
+  hold); max_open_positions 3; paper true. No code change: trend_filter.py adds an unseen symbol to the ledger as zero.
+  SPUS is bought at the first monthly check with its close above SMA200 x 1.01 (17 Nov: +0.2%, inside the band).
+  Dashboard caveat: the sleeve curve and "vs SPY only" apply $1,500 from the first fill, and the daily value line steps
+  from ~1,000 to ~1,500 on the change day. Status: pending the Alpaca fractionable check and the root apply.
 
 ## Open items, in order
 1. claude-ops is in the `docker` group (gid 983, found 1 Nov), which is root equivalent. Decision for Abdullah:
@@ -162,6 +170,7 @@ Repository: `github.com/i3baid-cpu/trading-ops` (private), cloned at `/root/trad
   points worse, limit 3), from the 2022 bear market (peak 2021-12-27, low 2023-03-10; no bad prints in the data).
   HLAL (context only) beat SPY on all three; using it needs its own plan written before any run. Holding a Shariah
   fund for compliance is Abdullah's call regardless of this bar. Lumibot config unchanged.
+  Abdullah added SPUS to the paper bot anyway on 17 Nov; see Decisions.
 
 * Dashboard (17 Nov): pull request 3 merged with Abdullah's approval: a replay of the TrendFilter monthly checks on
   each symbol of the Alpaca tab (`replay.tf_replay_fig`). Check it with real data after the auto deploy; the 1% band
